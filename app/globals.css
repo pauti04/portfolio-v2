@@ -1,26 +1,188 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+   RUNS GREEN — token layer.
+   Light is default; `.dark` on <html> flips the raw variables. Green is
+   earned: --pass appears only on a verified check, never decoratively.
+--------------------------------------------------------------------------- */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #faf8f4;
+  --ink: #16181c;
+  --ink-soft: #3d434d;
+  --muted: #6b7280;
+  --line: #e3ded4;
+  --pass: #0e6f3c;
+  --running: #1d4ed8;
+  --fail: #b83a16;
+}
+
+.dark {
+  --paper: #101216;
+  --ink: #f0efec;
+  --ink-soft: #c3c7cd;
+  --muted: #9aa1ab;
+  --line: #262b33;
+  /* accents lightened for AA on dark paper */
+  --pass: #2dbd6e;
+  --running: #7aa5ff;
+  --fail: #ff8a63;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-pass: var(--pass);
+  --color-running: var(--running);
+  --color-fail: var(--fail);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jbmono), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* class-based dark mode for later agents' `dark:` utilities */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--running);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+
+@layer components {
+  .mono {
+    font-family: var(--font-jbmono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .smallcaps {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.6875rem;
+    font-weight: 500;
+  }
+
+  /* Hairline figure box with a "Fig. N" label slot riding the top rule. */
+  .figure-frame {
+    position: relative;
+    border: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .figure-frame > .fig-label {
+    position: absolute;
+    top: -0.62em;
+    left: 0.875rem;
+    padding: 0 0.45em;
+    background: var(--paper);
+    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+    font-style: italic;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+
+  /* Tiny mono chip stating where a number came from: live | recorded | build-time. */
+  .provenance {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.1em 0.45em;
+    font-family: var(--font-jbmono), ui-monospace, monospace;
+    font-size: 0.625rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .provenance::before {
+    content: "";
+    width: 0.4em;
+    height: 0.4em;
+    border-radius: 9999px;
+    background: var(--muted);
+    flex: none;
+  }
+  .provenance[data-mode="live"]::before {
+    background: var(--pass);
+  }
+  .provenance[data-mode="recorded"]::before {
+    background: var(--ink-soft);
+  }
+  .provenance[data-mode="build"]::before,
+  .provenance[data-mode="build-time"]::before {
+    background: var(--running);
+  }
+
+  /* Status: icon + text, never color-only. Glyph via ::before; the label
+     text always sits next to it in markup. */
+  .status-icon {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.45em;
+    font-family: var(--font-jbmono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .status-icon::before {
+    font-family: var(--font-jbmono), ui-monospace, monospace;
+    flex: none;
+  }
+  .status-pass {
+    color: var(--pass);
+  }
+  .status-pass::before {
+    content: "✓";
+  }
+  .status-running {
+    color: var(--running);
+  }
+  .status-running::before {
+    content: "→";
+  }
+  .status-fail {
+    color: var(--fail);
+  }
+  .status-fail::before {
+    content: "✗";
+  }
+  .status-idle {
+    color: var(--muted);
+  }
+  .status-idle::before {
+    content: "○";
+  }
 }

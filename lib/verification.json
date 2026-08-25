@@ -1,0 +1,162 @@
+{
+  "builtAt": "2026-08-25T12:24:57.041Z",
+  "results": {
+    "reflight": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "events replayed",
+          "value": "6/6"
+        },
+        {
+          "label": "classification",
+          "value": "wrong_tool_args · loop"
+        },
+        {
+          "label": "replay time",
+          "value": "1 ms"
+        },
+        {
+          "label": "cost",
+          "value": "$0.00"
+        }
+      ],
+      "summary": "Recorded failure replayed: 6/6 events, classified wrong_tool_args · loop, network never touched."
+    },
+    "bourse": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "ops/sec",
+          "value": "2.29M"
+        },
+        {
+          "label": "orders",
+          "value": "50k"
+        },
+        {
+          "label": "orders matched",
+          "value": "27k"
+        },
+        {
+          "label": "book invariants",
+          "value": "hold"
+        }
+      ],
+      "summary": "50k orders matched at 2.29M ops/sec on the build machine; book stayed sorted and uncrossed."
+    },
+    "netpulse": {
+      "pass": true,
+      "mode": "recorded",
+      "metrics": [
+        {
+          "label": "announcements (70 s sample)",
+          "value": "149,246"
+        },
+        {
+          "label": "feed rate",
+          "value": "~1,800 updates/sec"
+        },
+        {
+          "label": "incidents detected",
+          "value": "7/7"
+        },
+        {
+          "label": "RPKI validate",
+          "value": "~43 µs"
+        }
+      ],
+      "summary": "Live feed not opened at build time — recorded RIPE RIS session evidence replayed and labeled as such."
+    },
+    "costdna": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "events",
+          "value": "20k"
+        },
+        {
+          "label": "ledger total",
+          "value": "$43.64"
+        },
+        {
+          "label": "attributed",
+          "value": "$43.64"
+        },
+        {
+          "label": "unexplained",
+          "value": "$0.00"
+        }
+      ],
+      "summary": "20k synthetic CloudTrail events attributed to 3 teams; totals reconcile to the cent."
+    },
+    "chaincheck": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "claim",
+          "value": "\"adds rate limiting to /v2/predict\""
+        },
+        {
+          "label": "detectors flagging",
+          "value": "5/5"
+        },
+        {
+          "label": "ensemble score",
+          "value": "0.91"
+        },
+        {
+          "label": "verdict",
+          "value": "hallucination"
+        }
+      ],
+      "summary": "Known hallucinated claim classified correctly: 5/5 detectors flagged it, ensemble score 0.91."
+    },
+    "chaincheck-action": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "fail-threshold",
+          "value": "0.80"
+        },
+        {
+          "label": "pr #142",
+          "value": "exit 1"
+        },
+        {
+          "label": "pr #189",
+          "value": "exit 0"
+        },
+        {
+          "label": "pr #207",
+          "value": "exit 0"
+        }
+      ],
+      "summary": "Gate at 0.80 blocked pr #142 (score 0.91) and passed the other two."
+    },
+    "rasoibot": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "recipes indexed",
+          "value": "6"
+        },
+        {
+          "label": "lookups correct",
+          "value": "3/3"
+        },
+        {
+          "label": "API calls",
+          "value": "0"
+        }
+      ],
+      "summary": "Pantry lookup returned the right recipe for 2 pantries and honestly declined a third. No API calls."
+    }
+  }
+}

@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# runs green — the executable résumé
 
-## Getting Started
+Portfolio site for Parth Auti. Every claim on the page carries a check that
+executes the real system in the visitor's browser and reports numbers measured
+on their hardware. The page ships pre-verified: `scripts/verify.mjs` runs the
+node-runnable check cores before every build and bakes the results (plus an ISO
+timestamp) into `lib/verification.json`, which the static build consumes.
+Interaction is upside, never a gate — the no-JS page is fully informative from
+build data.
 
-First, run the development server:
+Seven checks (CHK-01 … CHK-07), one per project. Each is a `CheckRunner`
+(`lib/checks/types.ts`) living in `components/checks/<slug>.tsx`. Checks that
+cannot run under node record `mode: "recorded"` with their recorded evidence,
+and say so on the page.
+
+## Stack
+
+Next.js (App Router, `output: "export"`), TypeScript, Tailwind v4. No server.
+
+## Commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run dev        # dev server
+npm run verify     # run the check cores, write lib/verification.json
+npm run build      # verify (prebuild) + static export to out/
+npm run start      # serve out/ on :3000 — what the test suite runs against
+npm run test:e2e   # Playwright: smoke + axe WCAG 2.1 A/AA (zero violations)
+npx lhci autorun   # Lighthouse budgets: CLS ≤ 0.1, a11y/SEO ≥ 0.95 (error), perf ≥ 0.9 (warn)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Playwright starts `npm run start` itself; run `npm run build` first so `out/`
+exists. First run: `npx playwright install chromium`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## CI
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`.github/workflows/site-ci.yml`: build → Playwright (desktop project) →
+Lighthouse CI. The build step re-runs verification, so a red check core fails
+the pipeline before a browser ever opens.
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+Static export; anything that serves files works.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **GitHub Pages**: set `NEXT_PUBLIC_BASE_PATH=/<repo-name>` in the build
+  environment (wired to `basePath`/`assetPrefix` in `next.config.ts`), build,
+  publish `out/`.
+- **Vercel**: import the repo, leave `NEXT_PUBLIC_BASE_PATH` unset. Defaults
+  work; the export output is detected.
