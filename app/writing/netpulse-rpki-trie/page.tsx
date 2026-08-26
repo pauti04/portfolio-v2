@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Working notes · NetPulse · No. 01
+//
+// Warm ground, warm ink, journey type. Code excerpts sit in a warm panel with
+// a thin accent rule — not a dark terminal, not a white sheet.
+//
+// Every word of the article is ported verbatim from the previous build.
+// ----------------------------------------------------------------------------
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CONTACT } from "@/lib/claims";
@@ -8,17 +17,17 @@ export const metadata: Metadata = {
     "A short writeup on the longest-prefix-match index that turned NetPulse from offline tool into a live detector.",
 };
 
-/** Inline code, ink on paper. */
+/** Inline code, warm ink. */
 function C({ children }: { children: React.ReactNode }) {
   return <code className="mono text-[0.85em] text-ink">{children}</code>;
 }
 
-/** Bolded key phrase — emphasis by ink weight, not color. */
+/** Bolded key phrase — emphasis by ink weight, not colour. */
 function K({ children }: { children: React.ReactNode }) {
   return <span className="font-medium text-ink">{children}</span>;
 }
 
-/** Code excerpt as an ink-on-paper report block: figure frame, thin left rule. */
+/** Code excerpt: warm panel, thin accent rule down the left of the listing. */
 function CodeFigure({
   n,
   code,
@@ -31,88 +40,87 @@ function CodeFigure({
   sourcePath: string;
 }) {
   return (
-    <figure className="figure-frame my-8">
-      <span className="fig-label" aria-hidden="true">
+    <figure className="warm-panel my-9">
+      <figcaption className="sr-only">{caption}</figcaption>
+      <p className="mono border-b border-rule-soft px-4 py-2.5 text-[0.6875rem] tracking-[0.16em] text-muted uppercase sm:px-5">
         Fig. {n}
-      </span>
-      <div className="overflow-x-auto px-4 py-4">
-        <pre className="mono border-l-2 border-ink-soft pl-4 text-xs leading-[1.85] text-ink-soft">
+      </p>
+      <div
+        className="demo-well overflow-x-auto px-4 py-4 sm:px-5"
+        tabIndex={0}
+        role="region"
+        aria-label={caption}
+      >
+        <pre className="mono border-l-2 border-route pl-4 text-xs leading-[1.85] text-ink-soft">
           {code}
         </pre>
       </div>
-      <figcaption className="border-t border-line px-4 py-2.5">
-        <span className="smallcaps block text-muted">{caption}</span>
-        <span className="mono mt-1.5 block text-[0.6875rem] text-muted">
+      <div className="px-4 py-3 sm:px-5">
+        <span className="mono block text-[0.6875rem] leading-relaxed text-ink-soft">
+          {caption}
+        </span>
+        <span className="mono mt-1.5 block text-[0.6875rem] leading-relaxed text-muted">
           source:{" "}
-          <a
-            href="https://github.com/pauti04/netpulse"
-            className="underline decoration-line underline-offset-2 hover:text-ink"
-          >
+          <a href="https://github.com/pauti04/netpulse" className="quiet-link text-muted">
             github.com/pauti04/netpulse
           </a>{" "}
           · {sourcePath}
         </span>
-        <span className="mono mt-0.5 block text-[0.6875rem] text-muted">
+        <span className="mono mt-0.5 block text-[0.6875rem] leading-relaxed text-muted">
           reproduce locally:{" "}
           <span className="text-ink-soft">
             git clone https://github.com/pauti04/netpulse — methodology in BENCHMARK.md
           </span>
         </span>
-      </figcaption>
+      </div>
     </figure>
   );
 }
 
 const Cm = ({ children }: { children: React.ReactNode }) => (
-  <span className="italic text-muted">{children}</span>
+  <span className="text-muted italic">{children}</span>
 );
 const Kw = ({ children }: { children: React.ReactNode }) => (
   <span className="font-semibold text-ink">{children}</span>
 );
 
-const H2 = "mt-10 text-xl font-bold tracking-tight text-ink";
-const P = "text-[0.95rem] leading-[1.75] text-ink-soft";
+const H2 = "city-type mt-12 text-[clamp(1.5rem,4vw,2rem)]";
+const P = "mt-5 text-[0.9688rem] leading-[1.8] text-ink-soft";
 
 export default function Post() {
   return (
-    <main className="mx-auto w-full max-w-2xl px-5 pb-24 sm:px-8">
+    <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
       <nav
         aria-label="site"
-        className="mono flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-b border-line pb-4 pt-8 text-xs"
+        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-rule pt-8 pb-4 text-[0.8125rem]"
       >
-        <Link
-          href="/"
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
-          ← Parth Auti — the checks
+        <Link href="/" className="quiet-link">
+          <span aria-hidden="true">← </span>the journey
         </Link>
-        <Link
-          href="/writing"
-          className="text-muted underline decoration-line underline-offset-4 hover:text-ink-soft hover:decoration-current"
-        >
+        <Link href="/writing" className="quiet-link text-muted">
           writing
         </Link>
       </nav>
 
       <header className="pt-14">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1">
-          <p className="smallcaps text-muted">Working notes · NetPulse · No. 01</p>
-          <p className="mono text-xs text-muted">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <p className="eyebrow">Working notes · NetPulse · No. 01</p>
+          <p className="mono text-[0.8125rem] text-muted">
             <time dateTime="2026-05-12">2026-05-12</time> · 5 min read
           </p>
         </div>
-        <h1 className="mt-4 max-w-[24ch] text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+        <h1 className="city-type mt-6 max-w-[24ch] text-[clamp(2.125rem,6.4vw,3.5rem)]">
           How a patricia trie made RPKI validation 500× faster.
         </h1>
-        <p className="mt-4 max-w-[56ch] text-base leading-relaxed text-ink-soft">
+        <p className="mt-6 max-w-[56ch] text-[1.0625rem] leading-relaxed text-ink-soft">
           The single change that took NetPulse from &ldquo;offline batch tool&rdquo; to &ldquo;live
           stream detector.&rdquo;
         </p>
       </header>
 
-      <hr className="mt-10 border-line" aria-hidden="true" />
+      <hr className="mt-12 border-rule" aria-hidden="true" />
 
-      <article className="mt-10 space-y-5">
+      <article className="mt-10 max-w-[68ch]">
         <p className={P}>
           RPKI — the Resource Public Key Infrastructure — is the closest thing the Internet has to a
           source of truth about who&apos;s allowed to announce which prefixes. The TAL files publish
@@ -225,30 +233,30 @@ export default function Post() {
           New benchmark, same machine, same 859k-VRP dataset, same 1,000-call workload:
         </p>
 
-        <div>
-          <div className="mb-2.5 flex flex-wrap items-center gap-3">
-            <span className="smallcaps text-muted">Measured</span>
+        <div className="warm-panel mt-6 px-4 py-4 sm:px-5">
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <span className="eyebrow text-[0.6875rem] tracking-[0.16em]">Measured</span>
             <span className="provenance" data-mode="recorded">
               recorded · BENCHMARK.md
             </span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Measured results">
             <table className="mono w-full border-collapse text-left text-xs">
               <tbody>
-                <tr className="border-t border-line">
-                  <td className="whitespace-nowrap py-1.5 pr-4 align-top text-ink">43.2 ms / call</td>
-                  <td className="py-1.5 pr-4 align-top text-ink-soft">linear scan</td>
-                  <td className="py-1.5 align-top text-muted">the first cut</td>
+                <tr className="border-t border-rule">
+                  <td className="py-2 pr-4 align-top whitespace-nowrap text-ink">43.2 ms / call</td>
+                  <td className="py-2 pr-4 align-top text-ink-soft">linear scan</td>
+                  <td className="py-2 align-top text-muted">the first cut</td>
                 </tr>
-                <tr className="border-t border-line">
-                  <td className="whitespace-nowrap py-1.5 pr-4 align-top text-ink">86 µs / call</td>
-                  <td className="py-1.5 pr-4 align-top text-ink-soft">patricia trie</td>
-                  <td className="py-1.5 align-top text-muted">amortized, post warm-up</td>
+                <tr className="border-t border-rule">
+                  <td className="py-2 pr-4 align-top whitespace-nowrap text-ink">86 µs / call</td>
+                  <td className="py-2 pr-4 align-top text-ink-soft">patricia trie</td>
+                  <td className="py-2 align-top text-muted">amortized, post warm-up</td>
                 </tr>
-                <tr className="border-y border-line">
-                  <td className="whitespace-nowrap py-1.5 pr-4 align-top text-ink">43 µs / call</td>
-                  <td className="py-1.5 pr-4 align-top text-ink-soft">after rust ext</td>
-                  <td className="py-1.5 align-top text-muted">with native bitmap ops</td>
+                <tr className="border-y border-rule">
+                  <td className="py-2 pr-4 align-top whitespace-nowrap text-ink">43 µs / call</td>
+                  <td className="py-2 pr-4 align-top text-ink-soft">after rust ext</td>
+                  <td className="py-2 align-top text-muted">with native bitmap ops</td>
                 </tr>
               </tbody>
             </table>
@@ -263,7 +271,7 @@ export default function Post() {
 
         <h2 className={H2}>Lessons I keep relearning</h2>
 
-        <ol className="ml-5 list-decimal space-y-3 text-[0.95rem] leading-[1.7] text-ink-soft marker:text-muted">
+        <ol className="mt-6 ml-5 list-decimal space-y-3 text-[0.9688rem] leading-[1.75] text-ink-soft marker:text-muted">
           <li>
             <K>Data structures matter more than language.</K> Rewriting the linear scan in Rust
             would have bought maybe 5×. The trie bought 500× in Python.
@@ -280,14 +288,11 @@ export default function Post() {
           </li>
         </ol>
 
-        <hr className="border-line" aria-hidden="true" />
+        <hr className="mt-12 border-rule" aria-hidden="true" />
 
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="mt-6 text-[0.9375rem] leading-relaxed text-muted">
           The detector is open source at{" "}
-          <a
-            href="https://github.com/pauti04/netpulse"
-            className="text-ink-soft underline decoration-line underline-offset-4 hover:text-ink hover:decoration-current"
-          >
+          <a href="https://github.com/pauti04/netpulse" className="quiet-link text-ink-soft">
             github.com/pauti04/netpulse
           </a>
           . The benchmark methodology is documented in{" "}
@@ -296,17 +301,16 @@ export default function Post() {
         </p>
       </article>
 
-      <footer className="mono mt-16 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-t border-line pt-6 text-xs">
-        <Link
-          href="/writing"
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
-          ← all writing
-        </Link>
-        <a
-          href={`mailto:${CONTACT.email}`}
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
+      <footer className="mono mt-20 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
+        <span className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/writing" className="quiet-link">
+            <span aria-hidden="true">← </span>all writing
+          </Link>
+          <Link href="/" className="quiet-link text-muted">
+            back to the journey
+          </Link>
+        </span>
+        <a href={`mailto:${CONTACT.email}`} className="quiet-link text-muted">
           {CONTACT.email}
         </a>
       </footer>

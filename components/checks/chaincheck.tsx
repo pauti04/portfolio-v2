@@ -143,8 +143,14 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 
 // ---------------------------------------------------------------------------
 // Figure body — pick a fixture, read the claim against its ground truth,
-// see each detector's line and the ensemble verdict. Ink on paper.
+// see each detector's line and the ensemble verdict.
+//
+// Accent discipline: the detector scores are recorded, so they are ink. The
+// one thing this tab actually computes is the ensemble verdict, and that is
+// the only place the route colour appears.
 // ---------------------------------------------------------------------------
+
+const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
 
 export default function ChainCheckCheck() {
   const [active, setActive] = useState(0);
@@ -152,18 +158,19 @@ export default function ChainCheckCheck() {
   const result = ensemble(preset.expect);
 
   return (
-    <div className="mono space-y-3 p-4 text-xs">
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="fixture picker">
+    <div className="mono p-4 sm:p-5">
+      <p className={LABEL}>fixture</p>
+      <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="fixture picker">
         {PRESETS.map((p, i) => (
           <button
             key={p.label}
             type="button"
             aria-pressed={i === active}
             onClick={() => setActive(i)}
-            className={`border px-1.5 py-0.5 transition-colors ${
+            className={`rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
               i === active
-                ? "border-ink text-ink"
-                : "border-line text-muted hover:border-ink-soft hover:text-ink-soft"
+                ? "border-ink-soft bg-panel text-ink"
+                : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
             }`}
           >
             {p.label}
@@ -171,41 +178,67 @@ export default function ChainCheckCheck() {
         ))}
       </div>
 
-      <div className="space-y-1.5">
-        <p>
-          <span className="text-muted">claim </span>
-          <span className="text-ink">&quot;{preset.claim}&quot;</span>
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>claim</p>
+        <p className="mt-2.5 max-w-[68ch] text-[0.8125rem] leading-relaxed text-ink">
+          &quot;{preset.claim}&quot;
         </p>
-        <pre className="whitespace-pre-wrap border-l border-line pl-3 text-muted">
+        <p className={`${LABEL} mt-4`}>checked against</p>
+        <pre className="mt-2.5 max-w-[72ch] border-l border-rule pl-3.5 text-[0.75rem] leading-relaxed break-words whitespace-pre-wrap text-muted">
           {preset.source}
         </pre>
       </div>
 
-      <div className="space-y-1 border-t border-line pt-2">
-        {result.rows.map((r) => (
-          <div key={r.name} className="grid grid-cols-[1rem_7.5rem_1fr_auto] items-center gap-x-2">
-            <span aria-hidden="true" className={r.bad ? "text-fail" : "text-muted"}>
-              {r.bad ? "✗" : "✓"}
-            </span>
-            <span className="text-muted">{r.name}</span>
-            <span aria-hidden="true" className="hidden h-px bg-line sm:block">
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>five detectors, recorded</p>
+        <div className="mt-3 space-y-2">
+          {result.rows.map((r) => (
+            <div
+              key={r.name}
+              className="flex flex-col gap-1 sm:grid sm:grid-cols-[1rem_8.5rem_minmax(3rem,1fr)_auto] sm:items-center sm:gap-x-3"
+            >
+              <div className="flex items-baseline gap-x-2 sm:contents">
+                <span
+                  aria-hidden="true"
+                  className={`text-[0.75rem] ${r.bad ? "text-fail" : "text-muted"}`}
+                >
+                  {r.bad ? "✗" : "✓"}
+                </span>
+                <span className="text-[0.75rem] text-ink-soft">{r.name}</span>
+              </div>
+              <span aria-hidden="true" className="hidden h-1 rounded-full bg-rule sm:block">
+                <span
+                  className="block h-1 rounded-full bg-ink-soft"
+                  style={{ width: `${Math.max(3, r.score * 100)}%` }}
+                />
+              </span>
               <span
-                className="block h-px"
-                style={{ width: `${Math.max(2, r.score * 100)}%`, background: "var(--ink-soft)" }}
-              />
-            </span>
-            <span className={`text-right ${r.bad ? "text-ink" : "text-ink-soft"}`}>
-              {r.label} {r.score.toFixed(2)}
-            </span>
-          </div>
-        ))}
+                className={`pl-[1.5rem] text-[0.75rem] sm:pl-0 sm:text-right ${
+                  r.bad ? "text-ink" : "text-muted"
+                }`}
+              >
+                {r.label} {r.score.toFixed(2)}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="border-t border-line pt-2 text-muted">
-        verdict: <span className={result.verdict === "supported" ? "text-ink" : "text-ink font-medium"}>{result.verdict}</span>{" "}
-        · ensemble {result.score.toFixed(2)} · {result.badCount}/5 flag · 4-of-5 required · recorded
-        scores, in-tab vote
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>ensemble verdict, computed here</p>
+        <p className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-[0.9375rem] text-route">{result.verdict}</span>
+          <span className="text-[0.8125rem] text-ink-soft">{result.score.toFixed(2)}</span>
+          <span className="text-[0.75rem] text-muted">
+            {result.badCount}/5 detectors flag · 4-of-5 required
+          </span>
+        </p>
       </div>
+
+      <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
+        detector scores are the shipped detector&apos;s recorded outputs — no model calls from a
+        browser tab. The vote itself runs here.
+      </p>
     </div>
   );
 }

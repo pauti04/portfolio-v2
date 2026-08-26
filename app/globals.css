@@ -1,71 +1,165 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   RUNS GREEN — token layer.
-   Light is default; `.dark` on <html> flips the raw variables. Green is
-   earned: --pass appears only on a verified check, never decoratively.
+   NINE THOUSAND MILES — token layer.
+
+   One theme, warm, no toggle and no second hue. Deep ink-brown ground, warm
+   off-white ink, and exactly one accent — a saffron/terracotta — reserved for
+   THE ROUTE LINE, THE DISTANCE MARKERS and LIVE INDICATORS. Nowhere else.
+
+   The only colour outside that family is --fail, and it is a state, not a
+   decoration: it appears when a check does not pass, always beside a glyph.
+
+   Legacy token names (--stage, --paper, --line, --accent-*) alias into the
+   warm palette so the check bodies and /writing keep rendering until their
+   own stages land. They resolve to warm neutrals — never to the accent.
 --------------------------------------------------------------------------- */
 
 :root {
-  --paper: #faf8f4;
-  --ink: #16181c;
-  --ink-soft: #3d434d;
-  --muted: #6b7280;
-  --line: #e3ded4;
-  --pass: #0e6f3c;
-  --running: #1d4ed8;
-  --fail: #b83a16;
+  /* ground & ink */
+  --ground: #17120e;
+  --ground-deep: #100c09;
+  --panel: #1e1813;
+  --ink: #f4ede1;
+  --ink-soft: #d6c9b4;
+  --muted: #9a8c76;
+  --rule: #33291f;
+  --rule-soft: #261e17;
+
+  /* the one accent — route line, distance numerals, live indicators */
+  --route: #e08a4a;
+  --route-deep: #b96a30;
+  --route-ghost: rgba(224, 138, 74, 0.16);
+
+  /* states: tone is carried by a glyph first, colour second */
+  --pass: var(--ink);
+  --running: var(--route);
+  --fail: #e2705a;
+
+  /* the rail the whole page hangs off ------------------------------------ */
+  --page-max: 72rem;
+  --rail: 1.25rem; /* route line x, measured from the page box */
+  --rail-gap: 1.375rem; /* route line → text */
+  --rail-w: 2px;
+  --dot: 9px;
+  --content-x: calc(var(--rail) + var(--rail-gap));
+
+  /* legacy aliases — previous-build components read these */
+  --stage: var(--ground);
+  --paper: var(--ground);
+  --line: var(--rule);
+  --accent-violet: var(--ink-soft);
+  --accent-cyan: var(--ink-soft);
+  --accent-teal: var(--ink-soft);
 }
 
-.dark {
-  --paper: #101216;
-  --ink: #f0efec;
-  --ink-soft: #c3c7cd;
-  --muted: #9aa1ab;
-  --line: #262b33;
-  /* accents lightened for AA on dark paper */
-  --pass: #2dbd6e;
-  --running: #7aa5ff;
-  --fail: #ff8a63;
+@media (min-width: 640px) {
+  :root {
+    --rail: 2.25rem;
+    --rail-gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --rail: 3.5rem;
+    --rail-gap: 3rem;
+  }
 }
 
 @theme inline {
-  --color-paper: var(--paper);
+  --color-ground: var(--ground);
+  --color-ground-deep: var(--ground-deep);
+  --color-panel: var(--panel);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
-  --color-line: var(--line);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-route: var(--route);
+  --color-route-deep: var(--route-deep);
   --color-pass: var(--pass);
   --color-running: var(--running);
   --color-fail: var(--fail);
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jbmono), ui-monospace, "SF Mono", Menlo, monospace;
-}
 
-/* class-based dark mode for later agents' `dark:` utilities */
-@custom-variant dark (&:where(.dark, .dark *));
+  /* legacy colour names still referenced by checks/* and /writing */
+  --color-stage: var(--stage);
+  --color-paper: var(--paper);
+  --color-line: var(--line);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-teal: var(--accent-teal);
+
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+}
 
 /* ---------------------------------------------------------------------------
    Base
 --------------------------------------------------------------------------- */
 
 body {
-  background: var(--paper);
+  background: var(--ground);
   color: var(--ink);
-  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--route);
+  color: var(--ground-deep);
 }
 
 :focus-visible {
-  outline: 2px solid var(--running);
+  outline: 2px solid var(--route);
   outline-offset: 2px;
+  border-radius: 2px;
 }
+
+/* ---------------------------------------------------------------------------
+   Keyframes — transform / opacity only. Zero layout, zero CLS.
+--------------------------------------------------------------------------- */
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes enter-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes route-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Global reduced-motion kill switch. Nothing moves; the route is simply
+   drawn in full, which is what it would have drawn to anyway.
+--------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -76,6 +170,33 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  .route-fill {
+    transform: scaleY(1) !important;
+  }
+  .route-head {
+    display: none !important;
+  }
+  .provenance[data-mode="live"]::before {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  [data-enter] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Nothing on this page is allowed to print blank. */
+@media print {
+  [data-enter] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -83,8 +204,10 @@ body {
 --------------------------------------------------------------------------- */
 
 @layer components {
+  /* -- type ------------------------------------------------------------- */
+
   .mono {
-    font-family: var(--font-jbmono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
     font-variant-numeric: tabular-nums;
   }
 
@@ -95,35 +218,159 @@ body {
     font-weight: 500;
   }
 
-  /* Hairline figure box with a "Fig. N" label slot riding the top rule. */
-  .figure-frame {
-    position: relative;
-    border: 1px solid var(--line);
-    background: var(--paper);
-  }
-  .figure-frame > .fig-label {
-    position: absolute;
-    top: -0.62em;
-    left: 0.875rem;
-    padding: 0 0.45em;
-    background: var(--paper);
-    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-    font-style: italic;
-    font-size: 0.6875rem;
+  /* The chapter/section micro-line. 13px floor keeps --muted at AA. */
+  .eyebrow {
+    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.8125rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
     color: var(--muted);
-    line-height: 1.2;
   }
 
-  /* Tiny mono chip stating where a number came from: live | recorded | build-time. */
+  /* City names and the person's name — Fraunces, warm, set tight. */
+  .city-type {
+    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    line-height: 0.94;
+    letter-spacing: -0.022em;
+    color: var(--ink);
+  }
+
+  /* The mileage numerals. Same face, tabular, accent-coloured. */
+  .numeral {
+    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums lining-nums;
+    line-height: 0.86;
+    letter-spacing: -0.03em;
+    color: var(--route);
+  }
+
+  /* -- the route line ---------------------------------------------------- */
+
+  .route-spine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--rail);
+    width: var(--rail-w);
+    pointer-events: none;
+  }
+  .route-track,
+  .route-fill {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+  }
+  .route-track {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      var(--rule) 3%,
+      var(--rule) 97%,
+      transparent 100%
+    );
+  }
+  .route-fill {
+    background: linear-gradient(
+      to bottom,
+      var(--route-deep) 0%,
+      var(--route) 60%,
+      var(--route) 100%
+    );
+    transform-origin: top center;
+    transform: scaleY(var(--route-p, 0));
+    /* just enough to smooth rAF jitter and to draw itself in on first paint */
+    transition: transform 110ms linear;
+    will-change: transform;
+  }
+  .route-head {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    margin-left: -4.5px;
+    margin-top: -4.5px;
+    border-radius: 999px;
+    background: var(--route);
+    box-shadow: 0 0 0 4px var(--route-ghost);
+    transform: translateY(var(--route-head, 0px));
+    transition: transform 110ms linear;
+    will-change: transform;
+  }
+
+  /* Anything that plants a node on the line. The node is drawn by the child,
+     positioned against the rail, so it lands on the route at any width. */
+  .on-rail {
+    position: relative;
+  }
+  .on-rail::before {
+    content: "";
+    position: absolute;
+    top: var(--node-top, 0.45em);
+    left: calc(
+      -1 * var(--rail-gap) + (var(--rail-w) / 2) - (var(--node, var(--dot)) / 2)
+    );
+    width: var(--node, var(--dot));
+    height: var(--node, var(--dot));
+    border-radius: 999px;
+    background: var(--ground);
+    border: 1.5px solid var(--ink-soft);
+    box-sizing: border-box;
+  }
+
+  /* Chapter openers get the big ring; distance markers get the filled accent
+     node (a marker post is a distance marker — the accent belongs here). */
+  .on-rail-city::before {
+    --node: 17px;
+    border-width: 2px;
+    border-color: var(--ink);
+    background: var(--ground);
+  }
+  .on-rail-marker::before {
+    --node: 13px;
+    border-color: var(--route);
+    background: var(--route);
+  }
+  /* A project stop reads as a different kind of node: a small square post. */
+  .on-rail-stop::before {
+    --node: 11px;
+    border-radius: 2px;
+    border-color: var(--ink-soft);
+    background: var(--ground);
+    transform: rotate(45deg);
+  }
+
+  /* -- surfaces ---------------------------------------------------------- */
+
+  /* The warm panel a live demo sits in. No glass, no blur, no chrome. */
+  .warm-panel {
+    position: relative;
+    border-radius: 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    box-shadow: 0 30px 60px -46px rgba(0, 0, 0, 0.95);
+  }
+  /* The well the demo body itself renders into — a shade deeper than panel. */
+  .demo-well {
+    background: var(--ground-deep);
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  /* -- indicators -------------------------------------------------------- */
+
+  /* Provenance chip: where a number came from. Accent only when live. */
   .provenance {
     display: inline-flex;
     align-items: center;
-    gap: 0.35em;
-    border: 1px solid var(--line);
-    border-radius: 2px;
-    padding: 0.1em 0.45em;
-    font-family: var(--font-jbmono), ui-monospace, monospace;
-    font-size: 0.625rem;
+    gap: 0.4em;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.15em 0.6em;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 0.6875rem;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.06em;
     color: var(--muted);
@@ -131,44 +378,44 @@ body {
   }
   .provenance::before {
     content: "";
-    width: 0.4em;
-    height: 0.4em;
-    border-radius: 9999px;
+    width: 0.42em;
+    height: 0.42em;
+    border-radius: 999px;
     background: var(--muted);
     flex: none;
   }
+  /* The live indicator: the accent, and the only thing on the page that
+     pulses. It appears the moment a runner reports mode "live". */
   .provenance[data-mode="live"]::before {
-    background: var(--pass);
+    background: var(--route);
+    animation: route-pulse 2.4s ease-in-out infinite;
   }
-  .provenance[data-mode="recorded"]::before {
+  .provenance[data-mode="recorded"]::before,
+  .provenance[data-mode="build"]::before,
+  .provenance[data-mode="build-verified"]::before {
     background: var(--ink-soft);
   }
-  .provenance[data-mode="build"]::before,
-  .provenance[data-mode="build-time"]::before {
-    background: var(--running);
-  }
 
-  /* Status: icon + text, never color-only. Glyph via ::before; the label
-     text always sits next to it in markup. */
+  /* Status: glyph first, colour second — never colour alone. */
   .status-icon {
     display: inline-flex;
     align-items: baseline;
     gap: 0.45em;
-    font-family: var(--font-jbmono), ui-monospace, monospace;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
   }
   .status-icon::before {
-    font-family: var(--font-jbmono), ui-monospace, monospace;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
     flex: none;
   }
   .status-pass {
-    color: var(--pass);
+    color: var(--ink);
   }
   .status-pass::before {
     content: "✓";
   }
   .status-running {
-    color: var(--running);
+    color: var(--route);
   }
   .status-running::before {
     content: "→";
@@ -184,5 +431,113 @@ body {
   }
   .status-idle::before {
     content: "○";
+  }
+
+  /* -- controls ---------------------------------------------------------- */
+
+  .run-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0.4em 0.95em;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    background: transparent;
+    transition:
+      border-color 180ms ease,
+      color 180ms ease;
+  }
+  .run-control:hover:not(:disabled) {
+    border-color: var(--route);
+    color: var(--ink);
+  }
+  .run-control:disabled {
+    color: var(--muted);
+    cursor: default;
+  }
+
+  .quiet-link {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.28em;
+    transition: text-decoration-color 180ms ease;
+  }
+  .quiet-link:hover {
+    text-decoration-color: var(--route);
+  }
+
+  /* -- scroll entrance --------------------------------------------------- */
+
+  /* Primed only by JS, only for elements still below the fold, and only when
+     motion is allowed — so no-JS and reduced-motion readers never see a
+     hidden element. Transform/opacity only. */
+  [data-enter="primed"] {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  [data-enter="in"] {
+    animation: enter-up 0.72s cubic-bezier(0.22, 1, 0.36, 1) var(--enter-delay, 0s)
+      both;
+  }
+  [data-enter="primed"][data-enter-variant="fade"] {
+    transform: none;
+  }
+  [data-enter="in"][data-enter-variant="fade"] {
+    animation-name: enter-in;
+  }
+
+  /* -- compatibility ----------------------------------------------------- */
+  /* Still referenced by /writing and by components/checks/reflight.tsx.
+     Retuned into the warm palette; no glass, no theatre. */
+
+  .credit-line {
+    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.8125rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .scene-title {
+    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .glass-panel {
+    position: relative;
+    border-radius: 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+  }
+  .figure-frame {
+    position: relative;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+  .figure-frame > .fig-label {
+    position: absolute;
+    top: -0.62em;
+    left: 0.875rem;
+    padding: 0 0.45em;
+    background: var(--ground);
+    font-size: 0.6875rem;
+    color: var(--muted);
+    line-height: 1.2;
+  }
+  .rv-lift,
+  .rv-slam {
+    animation: enter-up 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--rv-delay, 0s);
+  }
+  .rv-dim {
+    animation: enter-in 0.9s ease both;
+    animation-delay: var(--rv-delay, 0s);
   }
 }

@@ -1,17 +1,29 @@
-# runs green — the executable résumé
+# nine thousand miles — a portfolio you travel
 
-Portfolio site for Parth Auti. Every claim on the page carries a check that
-executes the real system in the visitor's browser and reports numbers measured
-on their hardware. The page ships pre-verified: `scripts/verify.mjs` runs the
-node-runnable check cores before every build and bakes the results (plus an ISO
-timestamp) into `lib/verification.json`, which the static build consumes.
-Interaction is upside, never a gate — the no-JS page is fully informative from
-build data.
+Portfolio site for Parth Auti, built as one scrolling journey: Pune → Manipal →
+Charlotte, 9,083 great-circle miles in three chapters, with the seven live demos
+planted where and when they were made — a recipe assistant in Manipal, a flight
+recorder for AI agents in Charlotte — so the growth curve is something you read
+by scrolling rather than something the page claims. The opening screen answers
+who / what / when (name, the route, available December 2026, GitHub, resume,
+email) in viewport one with zero JavaScript; each chapter opens on its city,
+dates and distance marker, the move between chapters is its own beat with the
+mileage counting up, and the page arrives on December 2026 and contact. The
+demos are the previous build's check runners — `scripts/verify.mjs` executes the
+node-runnable cores before every build and bakes results plus an ISO timestamp
+into `lib/verification.json`, so the static page ships pre-verified and every
+number on it is measured, labeled live / recorded / build-verified. Motion is
+transform/opacity only (zero CLS) and fully disabled under
+`prefers-reduced-motion`.
 
-Seven checks (CHK-01 … CHK-07), one per project. Each is a `CheckRunner`
-(`lib/checks/types.ts`) living in `components/checks/<slug>.tsx`. Checks that
-cannot run under node record `mode: "recorded"` with their recorded evidence,
-and say so on the page.
+Each check is a `CheckRunner` (`lib/checks/types.ts`) living in
+`components/checks/<slug>.tsx`. Checks that cannot run under node record
+`mode: "recorded"` with their recorded evidence, and say so on the page.
+
+The route itself — chapters, cities, dates, distances, milestones and which
+project was built where — is `lib/journey.ts`, a thin reader over the audited
+records in `app/cv/resume.ts` and `lib/claims.ts`. Facts are edited there, never
+in a page.
 
 ## Stack
 

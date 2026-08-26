@@ -137,7 +137,14 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 
 // ---------------------------------------------------------------------------
 // Figure body — toggle the pantry, watch the same set-intersection answer.
+//
+// This is the earliest thing on the route and it is dressed accordingly: two
+// zones, one answer, no meters, no tables, and — alone among the seven — no
+// accent anywhere. The route colour is earned further up the page. Small and
+// honest is the point; the figure is not allowed to argue otherwise.
 // ---------------------------------------------------------------------------
+
+const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
 
 export default function RasoiBotCheck() {
   const [picked, setPicked] = useState<string[]>(["paneer", "tomato"]);
@@ -147,8 +154,13 @@ export default function RasoiBotCheck() {
     setPicked((p) => (p.includes(ing) ? p.filter((x) => x !== ing) : [...p, ing]));
 
   return (
-    <div className="mono space-y-3 p-4 text-xs">
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="pantry, tap to toggle">
+    <div className="mono p-4 sm:p-5">
+      <p className={LABEL}>pantry</p>
+      <div
+        className="mt-3 flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="pantry — toggle an ingredient"
+      >
         {INGREDIENTS.map((ing) => {
           const on = picked.includes(ing);
           return (
@@ -157,10 +169,10 @@ export default function RasoiBotCheck() {
               type="button"
               aria-pressed={on}
               onClick={() => toggle(ing)}
-              className={`border px-1.5 py-0.5 transition-colors ${
+              className={`rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
                 on
-                  ? "border-ink text-ink"
-                  : "border-line text-muted hover:border-ink-soft hover:text-ink-soft"
+                  ? "border-ink-soft bg-panel text-ink"
+                  : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
               }`}
             >
               {ing}
@@ -169,21 +181,26 @@ export default function RasoiBotCheck() {
         })}
       </div>
 
-      <div className="border-t border-line pt-2">
+      <div className="mt-5 border-t border-rule pt-4" aria-live="polite">
+        <p className={LABEL}>what that makes</p>
         {found ? (
-          <p className="text-ink-soft">
-            <span className="text-ink">{found.name}</span> · {found.time}
-            <span className="text-muted"> — you&apos;ll also need {found.needs.join(", ")}</span>
-          </p>
+          <>
+            <p className="mt-2.5 text-[0.875rem] text-ink">{found.name}</p>
+            <p className="mt-1.5 text-[0.75rem] leading-relaxed text-muted">
+              {found.time} · you&apos;ll also need {found.needs.join(", ")}
+            </p>
+          </>
         ) : (
-          <p className="text-muted">
-            nothing locks in cleanly — try tomato, paneer, or chickpeas. an honest miss beats a
-            confident wrong answer.
-          </p>
+          <>
+            <p className="mt-2.5 text-[0.875rem] text-ink-soft">nothing locks in cleanly</p>
+            <p className="mt-1.5 max-w-[52ch] text-[0.75rem] leading-relaxed text-muted">
+              try tomato, paneer, or chickpeas. an honest miss beats a confident wrong answer.
+            </p>
+          </>
         )}
       </div>
 
-      <p className="text-muted">
+      <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
         set-intersection over a hand-curated index of {INDEX.length} · 0 API calls · the
         &quot;streaming&quot; in the real app is sleep(14 ms), and the README says so
       </p>

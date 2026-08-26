@@ -1,3 +1,12 @@
+// ----------------------------------------------------------------------------
+// Working notes · Reflight · No. 02
+//
+// Warm ground, warm ink, journey type. The recorded transcript sits in a warm
+// panel with a thin accent rule — not a dark terminal, not a white sheet.
+//
+// Every word of the article is ported verbatim from the previous build.
+// ----------------------------------------------------------------------------
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CONTACT } from "@/lib/claims";
@@ -8,17 +17,17 @@ export const metadata: Metadata = {
     "A live scheduling agent passed every tool-level check fifteen times in a row — and was wrong every time. What caught it, what didn't, and why pass rates lie.",
 };
 
-/** Inline code, ink on paper. */
+/** Inline code, warm ink. */
 function C({ children }: { children: React.ReactNode }) {
   return <code className="mono text-[0.85em] text-ink">{children}</code>;
 }
 
-/** Bolded key phrase — emphasis by ink weight, not color. */
+/** Bolded key phrase — emphasis by ink weight, not colour. */
 function K({ children }: { children: React.ReactNode }) {
   return <span className="font-medium text-ink">{children}</span>;
 }
 
-/** One numbered line of a report block. */
+/** One numbered line of the recorded transcript. */
 function ReportLine({
   n,
   tag,
@@ -30,63 +39,54 @@ function ReportLine({
 }) {
   return (
     <div className="flex gap-3 whitespace-nowrap">
-      <span className="w-5 shrink-0 select-none text-right text-muted">{n}</span>
+      <span className="w-5 shrink-0 text-right select-none text-muted">{n}</span>
       <span className="w-9 shrink-0 text-muted">{tag}</span>
       <span className="text-ink-soft">{children}</span>
     </div>
   );
 }
 
-const H2 = "mt-10 text-xl font-bold tracking-tight text-ink";
-const P = "text-[0.95rem] leading-[1.75] text-ink-soft";
+const H2 = "city-type mt-12 text-[clamp(1.5rem,4vw,2rem)]";
+const P = "mt-5 text-[0.9688rem] leading-[1.8] text-ink-soft";
 
 export default function Post() {
   return (
-    <main className="mx-auto w-full max-w-2xl px-5 pb-24 sm:px-8">
+    <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
       <nav
         aria-label="site"
-        className="mono flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-b border-line pb-4 pt-8 text-xs"
+        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-rule pt-8 pb-4 text-[0.8125rem]"
       >
-        <Link
-          href="/"
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
-          ← Parth Auti — the checks
+        <Link href="/" className="quiet-link">
+          <span aria-hidden="true">← </span>the journey
         </Link>
-        <Link
-          href="/writing"
-          className="text-muted underline decoration-line underline-offset-4 hover:text-ink-soft hover:decoration-current"
-        >
+        <Link href="/writing" className="quiet-link text-muted">
           writing
         </Link>
       </nav>
 
       <header className="pt-14">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1">
-          <p className="smallcaps text-muted">Working notes · Reflight · No. 02</p>
-          <p className="mono text-xs text-muted">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <p className="eyebrow">Working notes · Reflight · No. 02</p>
+          <p className="mono text-[0.8125rem] text-muted">
             <time dateTime="2026-08-11">2026-08-11</time> · 6 min read
           </p>
         </div>
-        <h1 className="mt-4 max-w-[22ch] text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+        <h1 className="city-type mt-6 max-w-[22ch] text-[clamp(2.125rem,6.4vw,3.5rem)]">
           Fifteen green runs booked a meeting on a Sunday.
         </h1>
-        <p className="mt-4 max-w-[56ch] text-base leading-relaxed text-ink-soft">
+        <p className="mt-6 max-w-[56ch] text-[1.0625rem] leading-relaxed text-ink-soft">
           A live agent passed every tool-level check, fifteen times in a row — and was wrong every
           single time. Pass rates lied. The recordings didn&apos;t.
         </p>
       </header>
 
-      <hr className="mt-10 border-line" aria-hidden="true" />
+      <hr className="mt-12 border-rule" aria-hidden="true" />
 
-      <article className="mt-10 space-y-5">
+      <article className="mt-10 max-w-[68ch]">
         <p className={P}>
           Everything below actually happened, against a live API, on July 10, 2026. The recordings
           are committed to the{" "}
-          <a
-            href="https://github.com/pauti04/reflight"
-            className="text-ink underline decoration-line underline-offset-4 hover:decoration-current"
-          >
+          <a href="https://github.com/pauti04/reflight" className="quiet-link">
             Reflight repo
           </a>{" "}
           — every run in this post replays offline, byte-identical, for $0.00.
@@ -118,22 +118,25 @@ export default function Post() {
           Wednesday&rdquo; as July 12 anyway:
         </p>
 
-        <figure className="figure-frame my-8">
-          <span className="fig-label" aria-hidden="true">
-            Fig. 1
-          </span>
-          <div className="flex items-center gap-3 px-4 pt-4">
+        <figure className="warm-panel my-9">
+          <figcaption className="sr-only">
+            One of fifteen recorded runs — identical wrong answer in every one
+          </figcaption>
+          <div className="flex flex-wrap items-center gap-3 border-b border-rule-soft px-4 py-2.5 sm:px-5">
+            <span className="mono text-[0.6875rem] tracking-[0.16em] text-muted uppercase">
+              Fig. 1
+            </span>
             <span className="provenance" data-mode="recorded">
               recorded · 2026-07-10
             </span>
           </div>
           <div
-            className="overflow-x-auto px-4 py-4"
+            className="demo-well overflow-x-auto px-4 py-4 sm:px-5"
             tabIndex={0}
             role="region"
             aria-label="Recorded run transcript"
           >
-            <div className="mono border-l-2 border-ink-soft pl-4 text-xs leading-[1.9]">
+            <div className="mono border-l-2 border-route pl-4 text-xs leading-[1.9]">
               <ReportLine n="01" tag="TOOL">
                 get_today {"{}"} → {"{"}date: 2026-07-10, weekday: Friday{"}"}
               </ReportLine>
@@ -154,28 +157,25 @@ export default function Post() {
               </ReportLine>
             </div>
           </div>
-          <figcaption className="border-t border-line px-4 py-2.5">
-            <span className="smallcaps block text-muted">
+          <div className="px-4 py-3 sm:px-5">
+            <span className="mono block text-[0.6875rem] leading-relaxed text-ink-soft">
               One of fifteen recorded runs — identical wrong answer in every one
             </span>
-            <span className="mono mt-1.5 block text-[0.6875rem] text-muted">
+            <span className="mono mt-1.5 block text-[0.6875rem] leading-relaxed text-muted">
               source:{" "}
-              <a
-                href="https://github.com/pauti04/reflight"
-                className="underline decoration-line underline-offset-2 hover:text-ink"
-              >
+              <a href="https://github.com/pauti04/reflight" className="quiet-link text-muted">
                 github.com/pauti04/reflight
               </a>{" "}
               · docs/case-study.md
             </span>
-            <span className="mono mt-0.5 block text-[0.6875rem] text-muted">
+            <span className="mono mt-0.5 block text-[0.6875rem] leading-relaxed text-muted">
               reproduce locally:{" "}
               <span className="text-ink-soft">
                 git clone https://github.com/pauti04/reflight &amp;&amp; cd reflight &amp;&amp;
                 pytest
               </span>
             </span>
-          </figcaption>
+          </div>
         </figure>
 
         <p className={P}>
@@ -218,7 +218,7 @@ export default function Post() {
 
         <h2 className={H2}>Why this needed a flight recorder</h2>
 
-        <ol className="ml-5 list-decimal space-y-3 text-[0.95rem] leading-[1.7] text-ink-soft marker:text-muted">
+        <ol className="mt-6 ml-5 list-decimal space-y-3 text-[0.9688rem] leading-[1.75] text-ink-soft marker:text-muted">
           <li>
             <K>The failure would otherwise be a support ticket.</K> &ldquo;Agent booked the wrong
             day,&rdquo; from a user, days later, with nothing to inspect. Instead it&apos;s fifteen
@@ -252,38 +252,31 @@ export default function Post() {
           that finds bugs in the microscope too is a good day.
         </p>
 
-        <hr className="border-line" aria-hidden="true" />
+        <hr className="mt-12 border-rule" aria-hidden="true" />
 
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="mt-6 text-[0.9375rem] leading-relaxed text-muted">
           Reflight is open source at{" "}
-          <a
-            href="https://github.com/pauti04/reflight"
-            className="text-ink-soft underline decoration-line underline-offset-4 hover:text-ink hover:decoration-current"
-          >
+          <a href="https://github.com/pauti04/reflight" className="quiet-link text-ink-soft">
             github.com/pauti04/reflight
           </a>
           , with the full case study, recordings, and the 15-line assertion in the repo. The{" "}
-          <a
-            href="https://pauti04.github.io/reflight-demo/"
-            className="text-ink-soft underline decoration-line underline-offset-4 hover:text-ink hover:decoration-current"
-          >
+          <a href="https://pauti04.github.io/reflight-demo/" className="quiet-link text-ink-soft">
             hosted demo
           </a>{" "}
           replays real recorded runs in your browser.
         </p>
       </article>
 
-      <footer className="mono mt-16 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-t border-line pt-6 text-xs">
-        <Link
-          href="/writing"
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
-          ← all writing
-        </Link>
-        <a
-          href={`mailto:${CONTACT.email}`}
-          className="underline decoration-line underline-offset-4 hover:decoration-current"
-        >
+      <footer className="mono mt-20 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
+        <span className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/writing" className="quiet-link">
+            <span aria-hidden="true">← </span>all writing
+          </Link>
+          <Link href="/" className="quiet-link text-muted">
+            back to the journey
+          </Link>
+        </span>
+        <a href={`mailto:${CONTACT.email}`} className="quiet-link text-muted">
           {CONTACT.email}
         </a>
       </footer>

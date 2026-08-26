@@ -174,7 +174,7 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController();
     abortRef.current = controller;
     setRunningAll(true);
-    announce("Running all 7 checks, top to bottom.");
+    announce(`Running all ${CHECK_SLUGS.length} checks.`);
     (async () => {
       for (const claim of CLAIMS) {
         if (controller.signal.aborted) break;
@@ -193,7 +193,7 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
 
   const copySummary = useCallback(async () => {
     const lines = [
-      "RUNS GREEN — verification summary",
+      "Parth Auti — verification summary",
       `page built and pre-verified: ${buildData.builtAt}`,
       `checks passing: ${
         CHECK_SLUGS.filter((s) => statesRef.current[s].status === "pass").length
@@ -239,10 +239,10 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
 
   return (
     <RunAllContext.Provider value={value}>
-      {/* sticky mini-bar during RUN ALL */}
+      {/* sticky mini-bar during RUN ALL — warm ground, accent live indicator */}
       {runningAll && (
-        <div className="fixed inset-x-0 top-0 z-50 border-b border-line bg-paper">
-          <div className="mx-auto flex max-w-4xl items-center gap-3 px-5 py-1.5">
+        <div className="fixed inset-x-0 top-0 z-50 border-b border-rule bg-ground">
+          <div className="mx-auto flex max-w-[var(--page-max)] items-center gap-3 px-5 py-2">
             <span className="status-icon status-running text-xs">running</span>
             <span className="mono text-xs text-ink-soft">
               {passCount}/{CHECK_SLUGS.length} passing…

@@ -104,8 +104,15 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 
 // ---------------------------------------------------------------------------
 // Figure body — the workflow step, a movable threshold, three sample PRs,
-// and the exit code that follows. Document affordances, ink on paper.
+// and the exit code that follows.
+//
+// Accent discipline: the threshold is the one live, visitor-driven thing in
+// this figure, so the route colour marks it and only it — in the workflow
+// snippet, on the slider, and as the tick every claim bar is measured against.
+// A blocked claim is a failure state and wears --fail, never the accent.
 // ---------------------------------------------------------------------------
+
+const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
 
 export default function ChainCheckActionCheck() {
   const [pick, setPick] = useState(0);
@@ -114,43 +121,45 @@ export default function ChainCheckActionCheck() {
   const decision = gate(sample.claims, threshold);
 
   return (
-    <div className="mono space-y-3 p-4 text-xs">
-      <pre className="border-l border-line pl-3 text-ink-soft">
+    <div className="mono p-4 sm:p-5">
+      <p className={LABEL}>the workflow step</p>
+      <pre className="mt-3 border-l border-rule pl-3.5 text-[0.75rem] leading-relaxed text-ink-soft">
         <span className="text-muted">- uses: </span>pauti04/chaincheck-action@v1{"\n"}
-        <span className="text-muted">  with:</span>{"\n"}
+        <span className="text-muted">  with:</span>
+        {"\n"}
         <span className="text-muted">    fail-threshold: </span>
-        <span className="text-ink">{threshold.toFixed(2)}</span>
+        <span className="text-route">{threshold.toFixed(2)}</span>
       </pre>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-2.5">
-        <label htmlFor="chk06-threshold" className="text-muted">
-          threshold
-        </label>
-        <input
-          id="chk06-threshold"
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={threshold}
-          onChange={(e) => setThreshold(parseFloat(e.target.value))}
-          className="max-w-[10rem] flex-1 accent-ink"
-        />
-        <span className="text-ink">{threshold.toFixed(2)}</span>
-        <span className="mx-1 text-muted" aria-hidden="true">
-          ·
-        </span>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="sample PR picker">
+      <div className="mt-5 border-t border-rule pt-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <label htmlFor="chk06-threshold" className={LABEL}>
+            threshold
+          </label>
+          <input
+            id="chk06-threshold"
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={threshold}
+            onChange={(e) => setThreshold(parseFloat(e.target.value))}
+            className="max-w-[10rem] min-w-[7rem] flex-1 accent-route"
+          />
+          <span className="text-[0.8125rem] text-route">{threshold.toFixed(2)}</span>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-1.5" role="group" aria-label="sample PR picker">
           {SAMPLES.map((s, i) => (
             <button
               key={s.label}
               type="button"
               aria-pressed={i === pick}
               onClick={() => setPick(i)}
-              className={`border px-1.5 py-0.5 transition-colors ${
+              className={`rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
                 i === pick
-                  ? "border-ink text-ink"
-                  : "border-line text-muted hover:border-ink-soft hover:text-ink-soft"
+                  ? "border-ink-soft bg-panel text-ink"
+                  : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
               }`}
             >
               {s.label}
@@ -159,40 +168,83 @@ export default function ChainCheckActionCheck() {
         </div>
       </div>
 
-      <div className="space-y-1 border-t border-line pt-2">
-        {sample.claims.map((c) => {
-          const blocked = c.score >= threshold;
-          return (
-            <div key={c.id} className="grid grid-cols-[1rem_1fr_auto] items-baseline gap-x-2">
-              <span aria-hidden="true" className={blocked ? "text-fail" : "text-muted"}>
-                {blocked ? "✗" : "✓"}
-              </span>
-              <span className={blocked ? "text-ink" : "text-ink-soft"}>{c.text}</span>
-              <span className={`text-right ${blocked ? "text-ink font-medium" : "text-muted"}`}>
-                {c.score.toFixed(2)}
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>claims in the description</p>
+        <div className="mt-3 space-y-2">
+          {sample.claims.map((c) => {
+            const blocked = c.score >= threshold;
+            return (
+              <div
+                key={c.id}
+                className="flex flex-col gap-1 sm:grid sm:grid-cols-[1rem_minmax(0,1fr)_6rem_auto] sm:items-center sm:gap-x-3"
+              >
+                <div className="flex items-baseline gap-x-2 sm:contents">
+                  <span
+                    aria-hidden="true"
+                    className={`text-[0.75rem] ${blocked ? "text-fail" : "text-muted"}`}
+                  >
+                    {blocked ? "✗" : "✓"}
+                  </span>
+                  <span
+                    className={`min-w-0 text-[0.75rem] break-words ${blocked ? "text-ink" : "text-ink-soft"}`}
+                  >
+                    {c.text}
+                  </span>
+                </div>
+                <span
+                  aria-hidden="true"
+                  className="relative hidden h-1 rounded-full bg-rule sm:block"
+                >
+                  <span
+                    className={`block h-1 rounded-full ${blocked ? "bg-fail" : "bg-ink-soft"}`}
+                    style={{ width: `${Math.max(3, c.score * 100)}%` }}
+                  />
+                  <span
+                    className="absolute -top-1 -bottom-1 w-px bg-route"
+                    style={{ left: `${threshold * 100}%` }}
+                  />
+                </span>
+                <span
+                  className={`pl-[1.5rem] text-[0.75rem] sm:pl-0 sm:text-right ${
+                    blocked ? "text-ink" : "text-muted"
+                  }`}
+                >
+                  {c.score.toFixed(2)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="border-t border-line pt-2">
+      <div className="mt-5 border-t border-rule pt-4" aria-live="polite">
+        <p className={LABEL}>gate decision</p>
         {decision.exit === 1 ? (
-          <span>
-            <span className="text-fail">✗ exit 1</span>
-            <span className="text-muted">
-              {" "}
-              · {decision.failed.length} claim{decision.failed.length > 1 ? "s" : ""} at or above{" "}
+          <p className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[0.9375rem] text-fail">
+              <span aria-hidden="true">✗ </span>exit 1
+            </span>
+            <span className="text-[0.75rem] text-muted">
+              {decision.failed.length} claim{decision.failed.length > 1 ? "s" : ""} at or above{" "}
               {threshold.toFixed(2)} · merge blocked
             </span>
-          </span>
+          </p>
         ) : (
-          <span>
-            <span className="text-ink">exit 0</span>
-            <span className="text-muted"> · all claims below {threshold.toFixed(2)} · merge allowed</span>
-          </span>
+          <p className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[0.9375rem] text-ink">
+              <span aria-hidden="true">✓ </span>exit 0
+            </span>
+            <span className="text-[0.75rem] text-muted">
+              all claims below {threshold.toFixed(2)} · merge allowed
+            </span>
+          </p>
         )}
       </div>
+
+      <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
+        per-claim scores come from the same detection core as CHK-05, recorded. The gate arithmetic
+        runs here — move the threshold and the exit code follows.
+      </p>
     </div>
   );
 }

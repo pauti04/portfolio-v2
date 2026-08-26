@@ -1,8 +1,9 @@
 "use client";
 
-// Report lines, not a console: mono ink on paper behind a thin left rule.
-// Tone is carried by a glyph and ink weight — never by color alone, and
-// never as colored text on a dark panel.
+// The run log — mono lines in warm ink, behind a thin left rule so it reads
+// as a margin note on the demo above it. Tone is carried by a glyph plus ink
+// weight, never by color alone; every color used holds AA on the warm ground.
+// Contract unchanged: renders the LogLine[] a runner emits, nothing else.
 
 import type { LogLine } from "@/lib/checks/types";
 
@@ -18,15 +19,19 @@ const inkWeight: Record<NonNullable<LogLine["tone"]> | "default", string> = {
   muted: "text-muted",
   ok: "text-ink",
   warn: "text-ink-soft",
-  err: "text-ink font-medium",
+  err: "text-fail font-medium",
   default: "text-ink-soft",
 };
 
 export default function CheckLog({ logs }: { logs: LogLine[] }) {
   if (logs.length === 0) return null;
   return (
-    <div role="log" aria-label="check report" className="border-t border-line px-4 py-2.5">
-      <div className="mono max-h-32 space-y-0.5 overflow-y-auto border-l border-line pl-3 text-[0.6875rem] leading-relaxed">
+    <div
+      role="log"
+      aria-label="run log"
+      className="border-t border-rule-soft px-4 py-3 sm:px-5"
+    >
+      <div className="mono max-h-32 space-y-1 overflow-y-auto border-l border-rule pl-3.5 text-[0.6875rem] leading-relaxed">
         {logs.map((l, i) => {
           const tone = l.tone ?? "default";
           return (

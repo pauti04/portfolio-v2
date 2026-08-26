@@ -262,19 +262,26 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 
 /* ------------------------------------------------------------------ visual */
 
+// Accent discipline: before the run this figure shows reference shares and is
+// entirely ink. The moment the window is generated and reconciled in this tab,
+// the share bars take the route colour — that switch is the only thing on the
+// figure that says "this number was just computed on your device".
+
 // Pre-run reference shares, from the repo's own synthetic-window runs.
 const REFERENCE_ROWS = [
-  { team: "recommend", share: "≈70%", driver: DOMINANT_PATH.recommend },
-  { team: "checkout", share: "≈25%", driver: DOMINANT_PATH.checkout },
-  { team: "ingest", share: "≈5%", driver: DOMINANT_PATH.ingest },
+  { team: "recommend", share: "≈70%", pct: 70, driver: DOMINANT_PATH.recommend },
+  { team: "checkout", share: "≈25%", pct: 25, driver: DOMINANT_PATH.checkout },
+  { team: "ingest", share: "≈5%", pct: 5, driver: DOMINANT_PATH.ingest },
 ];
 
-function ShareBar({ pct }: { pct: number }) {
+const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
+
+function ShareBar({ pct, live = false }: { pct: number; live?: boolean }) {
   return (
-    <div className="relative h-1.5 w-full max-w-[8rem] border border-line" aria-hidden="true">
+    <div className="h-1 w-full max-w-[7rem] rounded-full bg-rule" aria-hidden="true">
       <div
-        className="absolute inset-y-0 left-0 opacity-60"
-        style={{ width: `${Math.min(100, Math.max(2, pct))}%`, background: "var(--ink-soft)" }}
+        className={`h-1 rounded-full ${live ? "bg-route" : "bg-ink-soft"}`}
+        style={{ width: `${Math.min(100, Math.max(3, pct))}%` }}
       />
     </div>
   );
@@ -286,93 +293,109 @@ export default function CostDNACheck() {
 
   if (!view.ran) {
     return (
-      <div className="mono space-y-3 p-4 text-xs">
-        <div className="grid grid-cols-[6.5rem_3.5rem_1fr] gap-2 border-b border-line pb-1.5 text-muted">
-          <span>team</span>
-          <span>share</span>
-          <span>dominant path</span>
+      <div className="mono p-4 sm:p-5">
+        <p className={LABEL}>reference shares</p>
+        <div className="mt-3 space-y-2.5">
+          {REFERENCE_ROWS.map((t) => (
+            <div
+              key={t.team}
+              className="flex flex-col gap-1 sm:grid sm:grid-cols-[6rem_3rem_7rem_minmax(0,1fr)] sm:items-center sm:gap-x-3"
+            >
+              <div className="flex items-baseline gap-x-3 sm:contents">
+                <span className="text-[0.75rem] text-ink-soft">{t.team}</span>
+                <span className="text-[0.75rem] text-ink">{t.share}</span>
+              </div>
+              <div className="hidden sm:block">
+                <ShareBar pct={t.pct} />
+              </div>
+              <span className="text-[0.75rem] break-words text-muted">{t.driver}</span>
+            </div>
+          ))}
         </div>
-        {REFERENCE_ROWS.map((t) => (
-          <div key={t.team} className="grid grid-cols-[6.5rem_3.5rem_1fr] gap-2">
-            <span className="text-ink-soft">{t.team}</span>
-            <span className="text-ink">{t.share}</span>
-            <span className="text-muted">{t.driver}</span>
-          </div>
-        ))}
-        <div className="border-t border-line pt-2 text-muted">
-          reference shares — run the check to generate the window and reconcile it in this tab
-        </div>
+        <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
+          from the repo&apos;s own synthetic-window runs. Run the check and the window is generated
+          and reconciled here, on your device.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="mono space-y-3 p-4 text-xs">
-      <table className="w-full border-collapse text-left">
+    <div className="mono p-4 sm:p-5">
+      <p className={LABEL}>attributed in this tab</p>
+      <table className="mt-3 w-full border-collapse text-left">
+        <caption className="sr-only">
+          Per-team spend attributed from a synthetic CloudTrail window
+        </caption>
         <thead>
-          <tr className="text-muted">
-            <th scope="col" className="border-b border-line pb-1.5 pr-3 font-normal">
-              team
-            </th>
-            <th scope="col" className="border-b border-line pb-1.5 pr-3 font-normal">
-              events
-            </th>
-            <th scope="col" className="border-b border-line pb-1.5 pr-3 font-normal">
-              spend
-            </th>
-            <th scope="col" className="border-b border-line pb-1.5 pr-3 font-normal">
-              share
-            </th>
-            <th scope="col" className="border-b border-line pb-1.5 font-normal" aria-hidden="true" />
+          <tr>
+            {["team", "events", "spend", "share"].map((h) => (
+              <th
+                key={h}
+                scope="col"
+                className="border-b border-rule pr-3 pb-2 text-[0.6875rem] font-normal tracking-[0.14em] text-muted uppercase"
+              >
+                {h}
+              </th>
+            ))}
+            <th className="hidden border-b border-rule pb-2 sm:table-cell" aria-hidden="true" />
           </tr>
         </thead>
         <tbody>
           {view.rows.map((r) => (
-            <tr key={r.team}>
-              <td className="py-1.5 pr-3 text-ink-soft">{r.team}</td>
-              <td className="py-1.5 pr-3 text-muted">{fmtInt(r.events)}</td>
-              <td className="py-1.5 pr-3 text-ink">{fmtUsd(r.usd)}</td>
-              <td className="py-1.5 pr-3 text-ink-soft">{r.sharePct.toFixed(1)}%</td>
-              <td className="py-1.5 align-middle">
-                <ShareBar pct={r.sharePct} />
+            <tr key={r.team} className="border-b border-rule-soft">
+              <td className="py-2 pr-3 text-[0.75rem] text-ink-soft">{r.team}</td>
+              <td className="py-2 pr-3 text-[0.75rem] text-muted">{fmtInt(r.events)}</td>
+              <td className="py-2 pr-3 text-[0.75rem] text-ink">{fmtUsd(r.usd)}</td>
+              <td className="py-2 pr-3 text-[0.75rem] text-ink-soft">{r.sharePct.toFixed(1)}%</td>
+              <td className="hidden w-[7rem] py-2 align-middle sm:table-cell">
+                <ShareBar pct={r.sharePct} live />
               </td>
             </tr>
           ))}
-          <tr className="border-t border-line">
-            <td className="py-1.5 pr-3 text-ink">total</td>
-            <td className="py-1.5 pr-3 text-muted">{fmtInt(view.events)}</td>
-            <td className="py-1.5 pr-3 text-ink">{fmtUsd(view.attributedUsd)}</td>
-            <td className="py-1.5 pr-3 text-ink-soft">100.0%</td>
-            <td className="py-1.5" />
+          <tr>
+            <td className="py-2 pr-3 text-[0.75rem] text-ink">total</td>
+            <td className="py-2 pr-3 text-[0.75rem] text-muted">{fmtInt(view.events)}</td>
+            <td className="py-2 pr-3 text-[0.75rem] text-ink">{fmtUsd(view.attributedUsd)}</td>
+            <td className="py-2 pr-3 text-[0.75rem] text-ink-soft">100.0%</td>
+            <td className="hidden py-2 sm:table-cell" />
           </tr>
         </tbody>
       </table>
 
-      <ol className="space-y-1 border-t border-line pt-2.5">
-        <li className="grid grid-cols-[1.25rem_1rem_1fr] gap-x-1.5">
-          <span className="text-muted">1.</span>
-          <span aria-hidden="true" className="text-ink">
-            {reconciles ? "✓" : "✗"}
-          </span>
-          <span className={reconciles ? "text-ink-soft" : "font-medium text-ink"}>
-            assert attributed {fmtUsd(view.attributedUsd)} = ledger {fmtUsd(view.ledgerUsd)} — unexplained{" "}
-            {fmtUsd(Math.abs(view.unexplainedUsd))} {reconciles ? "(holds)" : "(violated)"}
-          </span>
-        </li>
-        <li className="grid grid-cols-[1.25rem_1rem_1fr] gap-x-1.5">
-          <span className="text-muted">2.</span>
-          <span aria-hidden="true" className="text-ink">
-            →
-          </span>
-          <span className="text-ink-soft">
-            observe {fmtInt(view.events)} events attributed in {view.elapsedMs.toFixed(1)} ms, this device
-          </span>
-        </li>
-      </ol>
-
-      <div className="border-t border-line pt-2 text-muted">
-        attribution walks spend from leaf resources back to owning teams · totals must reconcile
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>what that has to satisfy</p>
+        <ol className="mt-3 space-y-2">
+          <li className="grid grid-cols-[1.25rem_1rem_minmax(0,1fr)] gap-x-2">
+            <span className="text-[0.75rem] text-muted">1.</span>
+            <span aria-hidden="true" className={`text-[0.75rem] ${reconciles ? "text-ink" : "text-fail"}`}>
+              {reconciles ? "✓" : "✗"}
+            </span>
+            <span
+              className={`text-[0.75rem] leading-relaxed ${reconciles ? "text-ink-soft" : "font-medium text-ink"}`}
+            >
+              assert attributed {fmtUsd(view.attributedUsd)} = ledger {fmtUsd(view.ledgerUsd)} —
+              unexplained {fmtUsd(Math.abs(view.unexplainedUsd))}{" "}
+              {reconciles ? "(holds)" : "(violated)"}
+            </span>
+          </li>
+          <li className="grid grid-cols-[1.25rem_1rem_minmax(0,1fr)] gap-x-2">
+            <span className="text-[0.75rem] text-muted">2.</span>
+            <span aria-hidden="true" className="text-[0.75rem] text-ink">
+              →
+            </span>
+            <span className="text-[0.75rem] leading-relaxed text-ink-soft">
+              observe {fmtInt(view.events)} events attributed in {view.elapsedMs.toFixed(1)} ms, this
+              device
+            </span>
+          </li>
+        </ol>
       </div>
+
+      <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
+        attribution walks spend from leaf resources back to owning teams · the totals have to
+        reconcile or the check fails
+      </p>
     </div>
   );
 }

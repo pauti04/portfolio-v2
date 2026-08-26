@@ -1,120 +1,152 @@
 import { test, expect } from "@playwright/test";
 
-// Smoke suite. Asserts the acceptance-test-report contract of the page:
-// the viewport-1 answer needs no interaction, the seven checks exist by id,
-// the strip reflects the build-time verification, and every route renders.
+// ---------------------------------------------------------------------------
+// Smoke suite for NINE THOUSAND MILES.
+//
+// The acceptance contract, in order of the page:
+//   1. the opening screen answers who / what / when with no interaction and no
+//      JavaScript at all — name, "December 2026", GitHub, resume, email;
+//   2. the three chapters exist by id and carry their city names;
+//   3. the distance markers render their real figures (362 / 8,720 / 9,083);
+//   4. every project stop on the route exists by id with a run control;
+//   5. /cv carries education and experience, and both writeups render.
+//
+// Numbers are asserted against the screen-reader copies of the markers, which
+// are rendered at their final value and never touched by the count-up — the
+// assertion is therefore identical with motion on, off, or absent.
+// ---------------------------------------------------------------------------
 
-test.describe("viewport 1 — answer without interaction", () => {
-  test("name, availability, and links are present on load", async ({ page }) => {
+/** Route order, including the companion stop that shares ChainCheck's core. */
+const STOP_IDS = [
+  "stop-rasoibot",
+  "stop-chaincheck",
+  "stop-chaincheck-action",
+  "stop-costdna",
+  "stop-netpulse",
+  "stop-bourse",
+  "stop-reflight",
+] as const;
+
+const CHAPTERS = [
+  { id: "chapter-pune", city: "Pune" },
+  { id: "chapter-manipal", city: "Manipal" },
+  { id: "chapter-charlotte", city: "Charlotte" },
+] as const;
+
+test.describe("the opening screen — answered before you touch anything", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("who, what and when are in the static markup", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle(/Parth/);
+
+    // who
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      "Parth Auti builds systems and measures them."
+      "Parth Auti",
     );
-    // availability line
-    await expect(
-      page.getByText("available December 2026").first()
-    ).toBeVisible();
-    // contact links: GitHub / Resume (/cv) / Email
-    const nav = page.getByRole("navigation", { name: "contact" });
-    await expect(nav.getByRole("link", { name: "GitHub" })).toHaveAttribute(
-      "href",
-      /github\.com\/pauti04/
-    );
-    await expect(nav.getByRole("link", { name: "Resume" })).toHaveAttribute(
-      "href",
-      /\/cv/
-    );
-    await expect(
-      nav.getByRole("link", { name: /parth\.auti@gmail\.com/ })
-    ).toHaveAttribute("href", "mailto:parth.auti@gmail.com");
-    // the small-caps thesis line
-    await expect(
-      page.getByText("Every claim on this page is executable")
-    ).toBeVisible();
+
+    // what — the route, in one line, above the fold
+    const opening = page.locator("header").first();
+    await expect(opening).toContainText("Pune to Manipal to Charlotte");
+    await expect(opening).toContainText("9,083 miles");
+
+    // when — the availability answer, no scrolling, no animation
+    await expect(opening).toContainText("December 2026");
   });
 
-  test("status strip shows the build-verified state and RUN ALL", async ({
+  test("GitHub, resume and email links are present without interaction", async ({
     page,
   }) => {
     await page.goto("/");
-    const strip = page.getByRole("region", { name: "verification status" });
-    await expect(strip).toContainText("7 checks");
-    await expect(strip).toContainText("verified at build");
-    await expect(
-      strip.getByRole("button", { name: /run all checks/i })
-    ).toBeVisible();
-    // seven labeled circles, each seeded green from lib/verification.json
-    const entries = strip.getByRole("listitem");
-    await expect(entries).toHaveCount(7);
-    for (let i = 0; i < 7; i++) {
-      await expect(entries.nth(i)).toContainText("pass");
-    }
+    const nav = page.locator("header").first().getByRole("navigation").first();
+
+    await expect(nav.getByRole("link", { name: /github\.com\/pauti04/ })).toHaveAttribute(
+      "href",
+      /github\.com\/pauti04/,
+    );
+    await expect(nav.getByRole("link", { name: /parth\.auti@gmail\.com/ })).toHaveAttribute(
+      "href",
+      "mailto:parth.auti@gmail.com",
+    );
+    // the resume lives at /cv
+    await expect(nav.getByRole("link", { name: /^cv$/i })).toHaveAttribute(
+      "href",
+      /\/cv/,
+    );
   });
 });
 
-test.describe("claims ledger", () => {
-  test("all seven claim cards exist, anchored by CHK id", async ({ page }) => {
+test.describe("the route", () => {
+  test("all three chapters exist by id and name their city", async ({ page }) => {
     await page.goto("/");
-    for (const id of [
-      "chk-01",
-      "chk-02",
-      "chk-03",
-      "chk-04",
-      "chk-05",
-      "chk-06",
-      "chk-07",
-    ]) {
-      await expect(page.locator(`#${id}`)).toHaveCount(1);
+    for (const { id, city } of CHAPTERS) {
+      const chapter = page.locator(`#${id}`);
+      await expect(chapter).toHaveCount(1);
+      await expect(chapter.getByRole("heading", { level: 2 }).first()).toContainText(
+        city,
+      );
     }
   });
 
-  test("the flagship card carries claim, evidence, and verify sections", async ({
+  test("the distance markers carry the real mileage", async ({ page }) => {
+    await page.goto("/");
+    // Pune → Manipal, Manipal → Charlotte, and the total in the opening line.
+    for (const miles of ["362 miles", "8,720 miles", "9,083 miles"]) {
+      await expect(page.getByText(miles, { exact: true }).first()).toBeAttached();
+    }
+  });
+
+  test("every project stop renders with a run control", async ({ page }) => {
+    await page.goto("/");
+    for (const id of STOP_IDS) {
+      const stop = page.locator(`#${id}`);
+      await expect(stop).toHaveCount(1);
+      await stop.scrollIntoViewIfNeeded();
+      await expect(stop.getByRole("button", { name: /run/i }).first()).toBeVisible();
+      await expect(stop.locator(".provenance").first()).toHaveText(
+        /live|recorded|verified at build/,
+      );
+    }
+  });
+
+  test("the arrival section ends on December 2026 and one control for all of them", async ({
     page,
   }) => {
     await page.goto("/");
-    const card = page.locator("#chk-01");
-    await expect(card).toContainText(
-      "Fifteen consecutive green replay runs booked a real meeting on a Sunday, unattended."
-    );
+    const arrival = page.locator("#arrival");
+    await expect(arrival).toHaveCount(1);
+    await arrival.scrollIntoViewIfNeeded();
+    await expect(arrival).toContainText("December 2026");
     await expect(
-      card.getByRole("region", { name: "CHK-01 evidence" })
-    ).toHaveCount(1);
-    await expect(
-      card.getByRole("region", { name: "CHK-01 verify" })
-    ).toHaveCount(1);
-  });
-});
-
-test.describe("footer", () => {
-  test("the does-not-claim ledger lists its four bullets", async ({ page }) => {
-    await page.goto("/");
-    const section = page.getByRole("region", {
-      name: /what this site does not claim/i,
-    });
-    await expect(section.getByRole("listitem")).toHaveCount(4);
-    await expect(section).toContainText("No production traffic at scale");
+      arrival.getByRole("button", { name: /run all/i }),
+    ).toBeVisible();
   });
 });
 
 test.describe("routes", () => {
-  test("/cv renders", async ({ page }) => {
+  test("/cv renders education and experience", async ({ page }) => {
     await page.goto("/cv");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      "Parth Auti",
+    );
+    await expect(page.getByRole("heading", { name: "Education" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Experience" })).toBeVisible();
     await expect(
-      page.getByText("University of North Carolina at Charlotte").first()
+      page.getByText("University of North Carolina at Charlotte").first(),
+    ).toBeVisible();
+    // the audited job title, never inflated
+    await expect(
+      page.getByText("Software Engineering Intern").first(),
     ).toBeVisible();
   });
 
   test("both writeups render", async ({ page }) => {
     await page.goto("/writing/fifteen-green-runs");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /sunday/i
-    );
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(/sunday/i);
 
     await page.goto("/writing/netpulse-rpki-trie");
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      /patricia trie/i
+      /patricia trie/i,
     );
   });
 });

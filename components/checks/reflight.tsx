@@ -13,6 +13,7 @@
 import { useMemo } from "react";
 import type { CheckResult, CheckRunner } from "@/lib/checks/types";
 import verification from "@/lib/verification.json";
+import Reveal from "@/components/motion/Reveal";
 
 type VerificationFile = { builtAt: string; results: Record<string, CheckResult> };
 const build = verification as VerificationFile;
@@ -159,91 +160,212 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 };
 
 // ---------------------------------------------------------------------------
-// Figure body — numbered event assertion lines on paper, then the ledger
-// diffing the recorded build run against a re-run computed at render time.
+// Figure body — the last milestone before arrival, and the one that carries
+// the most weight on the page.
+//
+// A run is a route, so the replay is drawn as one: a thread down the left
+// with a node per event, the failing beats filled and set in full ink, the
+// classifier's verdict as the arrival ring at the end of the line. The same
+// vocabulary as the page's own spine, one shade quieter — no accent inside a
+// demo body, no glass, no chrome. State is carried by glyph and ink weight
+// first; the only colour is --fail, and only when something actually failed.
+//
+// Below it, the build-verification ledger diffs the run recorded at build
+// time against a re-run computed here, at render: the flight recorder
+// replaying the page that describes it.
 // ---------------------------------------------------------------------------
 
+// Geometry of the thread. NODE_Y is the node's centre, measured from the top
+// of its row; GAP is the list's own space-y, so a connector reaches exactly
+// from one node's centre to the next and is masked where the node sits on it.
+const NODE_Y = 7.5;
+const GAP = 16;
+
+/** A node on the replay thread. Filled = this event is part of the failure. */
+function BeatNode({ bad, arrival = false }: { bad: boolean; arrival?: boolean }) {
+  const size = arrival ? 15 : 11;
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute rounded-full"
+      style={{
+        left: `${5.5 - size / 2}px`,
+        top: `${NODE_Y - size / 2}px`,
+        width: size,
+        height: size,
+        boxSizing: "border-box",
+        borderStyle: "solid",
+        borderWidth: arrival ? 2 : 1.5,
+        borderColor: arrival || bad ? "var(--ink)" : "var(--rule)",
+        background: bad ? "var(--ink)" : "var(--ground-deep)",
+      }}
+    />
+  );
+}
+
+/** The segment of thread running from this node down to the next one. */
+function BeatThread() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute left-[5px] w-px"
+      style={{ top: `${NODE_Y}px`, bottom: `${-(GAP + NODE_Y)}px`, background: "var(--rule)" }}
+    />
+  );
+}
+
 export default function ReflightCheck() {
-  const live = useMemo(reRun, []);
+  const live = useMemo(() => reRun(), []);
   const divergent = DIFF_FIELDS.filter((f) => recordedField(f) !== live[f]).length;
+  const clean = divergent === 0;
 
   return (
-    <div className="mono space-y-5 p-4 text-xs">
-      <section aria-label="recorded failure, replayed">
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <span className="text-ink-soft">support-run-19 · recorded failure</span>
-          <span className="text-muted">network hard-blocked · $0.00</span>
-        </div>
-        <ol className="list-none space-y-1">
-          {RUN_19.map((e) => (
-            <li key={e.seq} className="grid grid-cols-[1rem_1.5rem_4.5rem_1fr] gap-x-2">
-              <span aria-hidden="true" className={e.bad ? "text-fail" : "text-muted"}>
-                {e.bad ? "✗" : "·"}
-              </span>
-              <span className="text-muted">{String(e.seq).padStart(2, "0")}</span>
-              <span className="text-muted">{e.kind}</span>
-              <span className={e.bad ? "text-ink" : "text-ink-soft"}>
-                {e.text}
-                {e.note && <span className="text-muted"> ← {e.note}</span>}
-              </span>
+    <div className="p-5 sm:p-6">
+      {/* THE REPLAY — the recorded failure, event by event, on its own thread */}
+      <section aria-label="recorded failure, replayed event by event">
+        <Reveal variant="dim">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
+            <span className="mono text-[0.75rem] text-ink">support-run-19</span>
+            <span className="mono text-[0.6875rem] text-muted">
+              recorded failure · network hard-blocked · $0.00
+            </span>
+          </div>
+        </Reveal>
+
+        <ol className="mt-5 list-none space-y-4 pl-9">
+          {RUN_19.map((e, i) => (
+            <li key={e.seq} className="relative">
+              <BeatThread />
+              <BeatNode bad={e.bad} />
+              <Reveal variant="lift" delay={0.07 * i}>
+                <div className="grid grid-cols-[1.75rem_1fr] items-baseline gap-x-3">
+                  <span
+                    className={`font-display text-[0.9375rem] leading-none tabular-nums ${
+                      e.bad ? "text-ink" : "text-muted"
+                    }`}
+                  >
+                    {String(e.seq).padStart(2, "0")}
+                  </span>
+                  <div>
+                    <span className="mono block text-[0.625rem] tracking-[0.18em] text-muted uppercase">
+                      {e.kind.replace("_", " ")}
+                    </span>
+                    <p
+                      className={`mono mt-1 text-xs leading-relaxed ${
+                        e.bad ? "text-ink" : "text-ink-soft"
+                      }`}
+                    >
+                      {e.text}
+                      {e.note && <span className="text-muted"> ← {e.note}</span>}
+                    </p>
+                  </div>
+                </div>
+              </Reveal>
             </li>
           ))}
-          <li className="grid grid-cols-[1rem_1.5rem_4.5rem_1fr] gap-x-2 border-t border-line pt-1">
-            <span aria-hidden="true" className="text-muted">
-              →
-            </span>
-            <span className="text-muted">06</span>
-            <span className="text-ink">classify</span>
-            <span className="text-ink font-medium">{live.classification}</span>
+
+          {/* arrival: the classifier's verdict, computed from the events above */}
+          <li className="relative">
+            <BeatNode bad={false} arrival />
+            <Reveal variant="lift" delay={0.07 * RUN_19.length}>
+              <div className="grid grid-cols-[1.75rem_1fr] items-baseline gap-x-3">
+                <span className="font-display text-[0.9375rem] leading-none tabular-nums text-ink">
+                  06
+                </span>
+                <div>
+                  <span className="mono block text-[0.625rem] tracking-[0.18em] text-muted uppercase">
+                    classifier verdict
+                  </span>
+                  <p className="mono mt-1.5 text-[1.0625rem] leading-tight font-medium tracking-[0.02em] text-ink">
+                    {live.classification}
+                  </p>
+                  <p className="mt-2.5 max-w-[54ch] text-[0.8125rem] leading-relaxed text-muted">
+                    Read off the five events above, not stored alongside them — the same
+                    function produces this label here and in the check.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
           </li>
         </ol>
       </section>
 
-      <section aria-label="build-verification run diffed against a live re-run">
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <span className="text-ink-soft">this build&apos;s verification run · replay vs re-run</span>
-          <span className="text-muted">recorded {build.builtAt.slice(0, 10)}</span>
-        </div>
-        <table className="w-full border-collapse text-left">
-          <thead>
-            <tr className="text-muted">
-              <th scope="col" className="py-1 pr-4 font-normal">
-                field
-              </th>
-              <th scope="col" className="py-1 pr-4 font-normal">
-                recorded (build)
-              </th>
-              <th scope="col" className="py-1 pr-4 font-normal">
-                re-run (this tab)
-              </th>
-              <th scope="col" className="py-1 font-normal">
-                Δ
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {DIFF_FIELDS.map((f) => {
-              const rec = recordedField(f);
-              const now = live[f];
-              const match = rec === now;
-              return (
-                <tr key={f} className="border-t border-line last:border-b">
-                  <td className="whitespace-nowrap py-1.5 pr-4 text-muted">{f}</td>
-                  <td className="whitespace-nowrap py-1.5 pr-4 text-ink-soft">{rec}</td>
-                  <td className="whitespace-nowrap py-1.5 pr-4 text-ink">{now}</td>
-                  <td className={`py-1.5 ${match ? "text-muted" : "text-fail"}`}>
-                    {match ? "none" : "✗ diverges"}
-                  </td>
+      {/* THE LEDGER — the build run against a re-run in this tab */}
+      <section
+        aria-label="build-verification run diffed against a live re-run"
+        className="mt-9 border-t border-rule pt-7"
+      >
+        <Reveal variant="dim">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <span className="mono text-[0.75rem] text-ink">
+              this site&apos;s own build-verification run
+            </span>
+            <span className="mono text-[0.6875rem] text-muted">
+              recorded {build.builtAt.slice(0, 10)} · re-run in this tab
+            </span>
+          </div>
+        </Reveal>
+
+        <Reveal variant="lift" delay={0.1}>
+          <div
+            className="mt-4 overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-label="Scrollable table: build-verification diff"
+          >
+            <table className="mono w-full min-w-[30rem] border-collapse text-left text-xs">
+              <caption className="sr-only">
+                Each field of the recorded build-verification run compared with a re-run
+                performed in this browser.
+              </caption>
+              <thead>
+                <tr className="border-b border-rule text-[0.625rem] tracking-[0.18em] text-muted uppercase">
+                  <th scope="col" className="py-2.5 pr-5 font-normal">
+                    field
+                  </th>
+                  <th scope="col" className="py-2.5 pr-5 font-normal">
+                    recorded · build
+                  </th>
+                  <th scope="col" className="py-2.5 pr-5 font-normal">
+                    re-run · this tab
+                  </th>
+                  <th scope="col" className="py-2.5 font-normal">
+                    Δ
+                  </th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <p className="mt-2 text-muted">
-          {divergent === 0
-            ? `${DIFF_FIELDS.length}/${DIFF_FIELDS.length} fields identical — the page replays its own recording cleanly.`
-            : `${divergent} field(s) diverge from the recorded run.`}
-        </p>
+              </thead>
+              <tbody>
+                {DIFF_FIELDS.map((f) => {
+                  const rec = recordedField(f);
+                  const now = live[f];
+                  const match = rec === now;
+                  return (
+                    <tr key={f} className="border-b border-rule-soft last:border-b-0">
+                      <td className="py-2.5 pr-5 whitespace-nowrap text-muted">{f}</td>
+                      <td className="py-2.5 pr-5 whitespace-nowrap text-ink-soft">{rec}</td>
+                      <td className="py-2.5 pr-5 whitespace-nowrap text-ink">{now}</td>
+                      <td className="py-2.5 whitespace-nowrap">
+                        <span
+                          className={`status-icon status-${match ? "pass" : "fail"} text-xs`}
+                        >
+                          {match ? "match" : "diverges"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Reveal>
+
+        <Reveal variant="dim" delay={0.2}>
+          <p className="mt-4 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted">
+            {clean
+              ? `All ${DIFF_FIELDS.length} fields identical. The page replays its own recording cleanly — and the replay never touches the network, which is why it costs $0.00.`
+              : `${divergent} of ${DIFF_FIELDS.length} fields diverge from the recorded run.`}
+          </p>
+        </Reveal>
       </section>
     </div>
   );

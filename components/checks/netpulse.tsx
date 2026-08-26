@@ -328,101 +328,145 @@ export const run: CheckRunner = ({ lite, signal, onLog }) => {
 };
 
 /* ------------------------------------------------------------------ visual */
+// The listening post. One honest state line at the top — live, recorded, or
+// not yet opened — carried by the shared .provenance chip, which is the only
+// place the route accent is allowed to appear inside a demo body: it pulses
+// when, and only when, this tab is genuinely on the feed.
 
 const SIGNALS = [
-  { name: "rpki validity", detail: "announcement vs signed ROA · ~43 µs/call" },
-  { name: "moas conflict", detail: "more than one AS originating the prefix" },
-  { name: "path distortion", detail: "implausibly short or odd AS-path" },
+  { name: "rpki validity", detail: "announcement checked against the signed ROA · ~43 µs per call" },
+  { name: "moas conflict", detail: "more than one AS originating the same prefix" },
+  { name: "path distortion", detail: "an AS-path that is implausibly short, or simply odd" },
 ];
 
-function PerSecondSpark({ perSec }: { perSec: number[] }) {
+function PerSecondPlot({ perSec, recorded }: { perSec: number[]; recorded: boolean }) {
   if (perSec.length === 0) return null;
   const max = Math.max(...perSec, 1);
-  const bw = 12;
-  const width = perSec.length * bw;
   return (
-    <svg
-      viewBox={`0 0 ${width} 26`}
-      className="h-6 w-full max-w-[12rem]"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <line x1="0" y1="25.5" x2={width} y2="25.5" stroke="var(--line)" strokeWidth="1" />
-      {perSec.map((n, i) => {
-        const h = Math.max(1.5, (n / max) * 22);
-        return (
-          <rect
+    <figure className="mt-5 border-t border-rule pt-3">
+      <figcaption className="mono flex flex-wrap items-baseline justify-between gap-x-4 text-[0.6875rem] text-muted">
+        <span>announcements per second{recorded ? " · from the recording" : ""}</span>
+        <span className="tabular-nums">busiest second: {fmtInt(max)}</span>
+      </figcaption>
+
+      <div className="mt-2.5 flex h-14 items-end gap-1.5" aria-hidden="true">
+        {perSec.map((n, i) => (
+          <div
             key={i}
-            x={i * bw + 1}
-            y={25 - h}
-            width={bw - 2}
-            height={h}
-            fill="var(--ink-soft)"
-            opacity="0.75"
+            className="flex-1"
+            style={{
+              height: `${Math.max(3, (n / max) * 100)}%`,
+              background: "var(--ink-soft)",
+              opacity: 0.5,
+              borderRadius: "2px 2px 0 0",
+            }}
           />
-        );
-      })}
-    </svg>
+        ))}
+      </div>
+
+      <div className="mt-1.5 flex gap-1.5 border-t border-rule-soft pt-1.5">
+        {perSec.map((n, i) => (
+          <span
+            key={i}
+            className="mono flex-1 text-center text-[0.625rem] tabular-nums text-muted"
+          >
+            {fmtInt(n)}
+          </span>
+        ))}
+      </div>
+    </figure>
   );
 }
 
 export default function NetPulseCheck() {
   const view = useSyncExternalStore(subscribeView, getView, getView);
-  const headerRight =
+
+  const recorded = view.mode === "recorded";
+  const chipMode = view.mode === "live" ? "live" : recorded ? "recorded" : undefined;
+  const chipLabel =
     view.mode === "live"
-      ? "live feed · this tab"
-      : view.mode === "recorded"
+      ? "listening · this tab"
+      : recorded
         ? "recorded session · labeled"
-        : "not yet opened";
+        : "feed not opened yet";
+
+  const rate = view.windowSec > 0 ? Math.round(view.count / view.windowSec) : 0;
 
   return (
-    <div className="mono space-y-3 p-4 text-xs">
-      <div className="flex items-baseline justify-between border-b border-line pb-2">
-        <span className="text-ink">ris-live · rrc00 · global feed</span>
-        <span className="text-muted">{headerRight}</span>
+    <div className="p-4 sm:p-5">
+      {/* where the feed comes from, and what it is doing right now */}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule pb-3">
+        <span className="mono text-[0.75rem] text-ink">
+          ris-live · rrc00 · the global BGP feed
+        </span>
+        <span className="provenance" data-mode={chipMode}>
+          {chipLabel}
+        </span>
       </div>
 
-      <div className="space-y-1.5">
+      {/* the reading */}
+      {view.mode === "idle" ? (
+        <p className="mt-4 max-w-[52ch] text-[0.875rem] leading-relaxed text-ink-soft">
+          Nothing counted yet. Run it and this panel opens a socket to RIPE RIS and
+          counts real announcements for six seconds. If the feed cannot be reached it
+          replays a recorded session instead — and the label above changes to say so.
+        </p>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <span className="font-display text-[2.375rem] leading-none tracking-tight tabular-nums text-ink">
+            {fmtInt(view.count)}
+          </span>
+          <span className="text-[0.875rem] text-ink-soft">
+            announcements in {view.windowSec.toFixed(1)} s
+          </span>
+          <span className="mono text-[0.75rem] tabular-nums text-muted">
+            ~{fmtInt(rate)}/s{recorded ? " · replayed" : " · measured here"}
+          </span>
+        </div>
+      )}
+
+      <PerSecondPlot perSec={view.perSec} recorded={recorded} />
+
+      {/* what actually came down the wire */}
+      {view.recent.length > 0 && (
+        <div className="mt-5 border-t border-rule pt-3">
+          <div className="mono flex flex-wrap items-baseline justify-between gap-x-4 text-[0.6875rem] text-muted">
+            <span>
+              last announcements {recorded ? "from the recording" : "seen in this tab"}
+            </span>
+            <span>prefix · origin · path</span>
+          </div>
+          <ul className="mt-2 space-y-1.5">
+            {view.recent.map((m, i) => (
+              <li
+                key={`${m.prefix}-${i}`}
+                className="mono grid grid-cols-[1fr_5rem_4.25rem] items-baseline gap-3 text-xs"
+              >
+                <span className="truncate text-ink">{m.prefix}</span>
+                <span className="tabular-nums text-ink-soft">AS{m.origin}</span>
+                <span className="text-right tabular-nums text-muted">{m.hops} hops</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* the three signals a verdict is built from */}
+      <dl className="mt-5 grid gap-x-6 gap-y-3 border-t border-rule pt-3 sm:grid-cols-3">
         {SIGNALS.map((s) => (
-          <div key={s.name} className="grid grid-cols-[7.5rem_1fr] gap-2">
-            <span className="text-ink-soft">{s.name}</span>
-            <span className="text-muted">{s.detail}</span>
+          <div key={s.name}>
+            <dt className="mono text-[0.625rem] tracking-[0.16em] text-ink-soft uppercase">
+              {s.name}
+            </dt>
+            <dd className="mt-1.5 text-[0.75rem] leading-snug text-muted">{s.detail}</dd>
           </div>
         ))}
-      </div>
+      </dl>
 
-      {view.mode !== "idle" && (
-        <div className="border-t border-line pt-2.5">
-          <div className="mb-1 flex items-baseline justify-between">
-            <span className="italic text-muted">announcements per second</span>
-            <span className="text-ink-soft">
-              {fmtInt(view.count)} in {view.windowSec.toFixed(1)} s
-            </span>
-          </div>
-          <PerSecondSpark perSec={view.perSec} />
-        </div>
-      )}
-
-      {view.recent.length > 0 && (
-        <div className="border-t border-line pt-2.5">
-          <div className="mb-1.5 italic text-muted">
-            last announcements {view.mode === "recorded" ? "(recorded)" : "(observed here)"}
-          </div>
-          <div className="space-y-1">
-            {view.recent.map((m, i) => (
-              <div key={`${m.prefix}-${i}`} className="grid grid-cols-[1fr_5.5rem_3.5rem] gap-2">
-                <span className="truncate text-ink-soft">{m.prefix}</span>
-                <span className="text-muted">AS{m.origin}</span>
-                <span className="text-right text-muted">{m.hops} hops</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="border-t border-line pt-2 text-muted">
-        verdict fires when at least two signals agree · 7/7 labeled incidents on the public benchmark
-      </div>
+      <p className="mt-4 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted">
+        A verdict only fires when at least two signals agree. On the public benchmark
+        that catches 7 of 7 labeled historical incidents.
+      </p>
     </div>
   );
 }
