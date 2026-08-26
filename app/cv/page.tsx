@@ -315,7 +315,7 @@ export default function CvPage() {
           border: 1px solid var(--cv-rule);
           border-radius: 999px;
           padding: 0.4em 0.95em;
-          font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+          font-family: var(--ui-mono);
           font-size: 0.75rem;
           letter-spacing: 0.06em;
           transition: border-color 180ms ease, color 180ms ease;

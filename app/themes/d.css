@@ -1,0 +1,83 @@
+/* ---------------------------------------------------------------------------
+   THEME D — "Studio"
+
+   The idea, in one line: a cool graphite room, bone light, and one vermillion
+   marker post. Nothing else is allowed to be a colour.
+
+   GROUND. A near-neutral graphite (#141416) with only the faintest cool cast —
+   not blue, not olive, and emphatically not brown. It is the wall of a photo
+   studio just outside the light, which is the only reason a page this dark
+   still feels like a room rather than a terminal. --panel lifts one step off it
+   and --ground-deep drops one step below, so a demo well reads as recessed
+   without a single shadow, gradient or blur doing the work.
+
+   INK. Bone (#efede6), not white. Warm paper against a cool wall is the one
+   piece of real tension in the palette; a pure #fff would have made the whole
+   thing a default dark mode. The greys below it stay on the same bone axis, so
+   the type never turns silver as it gets quieter.
+
+   ROUTE. Vermillion (#ff5a2b) — saturated, orange-red, and nothing like the
+   muted terracotta it is often mistaken for. It is the one saturated thing on
+   the page and it is structural, never decorative: the route line down the
+   rail, the distance markers, the mileage numerals, the live pulse. Vermillion
+   is the colour of a road marker post, which is exactly what this page's spine
+   is. --fail is pulled to a rose-red (#ff6e80), a clearly different hue, so a
+   failing check never reads as a running one — and it still ships with a ✗
+   glyph, because colour is not allowed to carry the meaning alone.
+
+   TYPE. Three faces, each doing a job the other two cannot.
+
+     display  Bricolage Grotesque — a variable grotesque with genuine drawing
+              quirks (the flicked l, the cut g, the tightening optical size).
+              At city-name scale those quirks are the personality; nothing
+              else in the case has an opinion at 96px without resorting to a
+              high-contrast serif, which is the tell we are avoiding.
+     body     Schibsted Grotesk — a Nordic newspaper grotesque drawn to sit
+              UNDER a louder display face: even colour down a paragraph,
+              distinctive numerals, no competing quirk. It is a deliberately
+              quieter cousin of the display, not a contrasting third voice.
+     mono     Geist Mono — flat terminals, tall x-height, no nostalgia. Used
+              only where the page is showing data, so it stays a tool.
+
+   No serif, and no fourth voice. Two grotesques and a mono is the whole system.
+
+   MEASURED (sRGB, WCAG 2.1 relative luminance — computed, not eyeballed)
+                              on ground   on ground-deep   on panel
+                              #141416     #0e0e10          #1d1d21
+     ink       #efede6         15.71:1      16.46:1         14.34:1
+     ink-soft  #b6b4ac          8.86:1       9.29:1          8.09:1
+     muted     #918f86          5.67:1       5.95:1          5.18:1   (used @13px)
+     route     #ff5a2b          5.91:1       6.20:1          5.40:1   (carries text)
+     fail      #ff6e80          6.83:1       7.16:1          6.24:1
+
+   Floors: ink >= 7, ink-soft/muted/route >= 4.5, on all three surfaces. Met.
+   --route-deep is the origin of the route-line gradient only; it never sets
+   type, so it is tuned for the draw rather than for a contrast floor.
+--------------------------------------------------------------------------- */
+
+html[data-theme="d"] {
+  /* type */
+  --font-display: var(--ff-bricolage);
+  --font-body: var(--ff-schibsted);
+  --font-mono: var(--ff-geist-mono);
+
+  /* ground & ink */
+  --ground: #141416;
+  --ground-deep: #0e0e10;
+  --panel: #1d1d21;
+  --ink: #efede6;
+  --ink-soft: #b6b4ac;
+  --muted: #918f86;
+  --rule: #2e2e35;
+  --rule-soft: #232329;
+
+  /* the route */
+  --route: #ff5a2b;
+  --route-deep: #c93a12;
+  --route-ghost: rgba(255, 90, 43, 0.16);
+
+  /* states */
+  --pass: var(--ink);
+  --running: var(--route);
+  --fail: #ff6e80;
+}

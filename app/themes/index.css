@@ -1,0 +1,47 @@
+/* ---------------------------------------------------------------------------
+   THE THEME REGISTER.
+
+   Four complete visual systems, one per file, selected by data-theme on <html>
+   (set server-side to "a", overridden before first paint from localStorage by
+   the boot script in app/layout.tsx).
+
+   Each file owns EXACTLY this token set and nothing else:
+
+     --ground --ground-deep --panel
+     --ink --ink-soft --muted
+     --rule --rule-soft
+     --route --route-deep --route-ghost
+     --pass --running --fail
+     --font-display --font-body --font-mono
+
+   Layout tokens (--page-max, --rail, --rail-gap, --rail-w, --dot, --content-x)
+   are NOT theme-owned. They live in globals.css and are the same in all four.
+
+   The nine typefaces available to map onto the three font tokens are declared
+   in app/layout.tsx and exposed as:
+
+     --ff-archivo            Archivo, variable wght + wdth
+     --ff-plex-mono          IBM Plex Mono, 400/500/600
+     --ff-instrument-serif   Instrument Serif, 400 + italic
+     --ff-newsreader         Newsreader, variable wght + opsz, + italic
+     --ff-instrument-sans    Instrument Sans, variable wght + wdth
+     --ff-geist-mono         Geist Mono, variable wght
+     --ff-martian-mono       Martian Mono, variable wght
+     --ff-bricolage          Bricolage Grotesque, variable wght + opsz + wdth
+     --ff-schibsted          Schibsted Grotesk, variable wght, + italic
+
+   Every one of these already ends in a metric-matched local fallback and a
+   generic, so a theme writes plainly:  --font-display: var(--ff-bricolage);
+
+   CONTRAST IS A BUILD GATE. e2e/a11y.spec.ts runs axe over four routes in two
+   viewports and tolerates zero violations. Compute, do not eyeball:
+     --ink      on --ground / --panel / --ground-deep  >= 7:1
+     --ink-soft on all three                           >= 4.5:1
+     --muted    on all three                           >= 4.5:1  (used at 13px)
+     --route    on all three                           >= 4.5:1  (carries text)
+--------------------------------------------------------------------------- */
+
+@import "./a.css";
+@import "./b.css";
+@import "./c.css";
+@import "./d.css";

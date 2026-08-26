@@ -1,40 +1,41 @@
 @import "tailwindcss";
+@import "./themes/index.css";
 
 /* ---------------------------------------------------------------------------
-   NINE THOUSAND MILES — token layer.
+   NINE THOUSAND MILES — structure layer.
 
-   One theme, warm, no toggle and no second hue. Deep ink-brown ground, warm
-   off-white ink, and exactly one accent — a saffron/terracotta — reserved for
-   THE ROUTE LINE, THE DISTANCE MARKERS and LIVE INDICATORS. Nowhere else.
+   NO COLOUR AND NO TYPEFACE IS DECIDED IN THIS FILE. Everything below is
+   written against the theme token contract only; the four files under
+   app/themes/ supply the values, selected by data-theme on <html>.
 
-   The only colour outside that family is --fail, and it is a state, not a
-   decoration: it appears when a check does not pass, always beside a glyph.
+   The contract, in full:
+     --ground --ground-deep --panel
+     --ink --ink-soft --muted
+     --rule --rule-soft
+     --route --route-deep --route-ghost
+     --pass --running --fail
+     --font-display --font-body --font-mono
 
-   Legacy token names (--stage, --paper, --line, --accent-*) alias into the
-   warm palette so the check bodies and /writing keep rendering until their
-   own stages land. They resolve to warm neutrals — never to the accent.
+   What lives here instead: the rail geometry the whole page hangs off, the
+   three resolved font stacks, and the structural component rules.
+
+   --route is load-bearing, not decorative: it is the route line, the distance
+   markers and the live indicator, and nothing else. --fail is a state, always
+   accompanied by a glyph so colour is never the sole carrier of meaning.
+
+   Legacy token names (--stage, --paper, --line, --accent-*) alias onto the
+   contract so the check bodies and /writing keep rendering. They resolve to
+   theme neutrals — never to the accent.
 --------------------------------------------------------------------------- */
 
 :root {
-  /* ground & ink */
-  --ground: #17120e;
-  --ground-deep: #100c09;
-  --panel: #1e1813;
-  --ink: #f4ede1;
-  --ink-soft: #d6c9b4;
-  --muted: #9a8c76;
-  --rule: #33291f;
-  --rule-soft: #261e17;
-
-  /* the one accent — route line, distance numerals, live indicators */
-  --route: #e08a4a;
-  --route-deep: #b96a30;
-  --route-ghost: rgba(224, 138, 74, 0.16);
-
-  /* states: tone is carried by a glyph first, colour second */
-  --pass: var(--ink);
-  --running: var(--route);
-  --fail: #e2705a;
+  /* The three faces, resolved. Themes name the family; these add the last
+     generic tail so a font-family declaration can never compute to nothing.
+     Component rules and the Tailwind utilities both read these, so
+     `font-mono` and `.mono` are guaranteed to be the same stack. */
+  --ui-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --ui-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --ui-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* the rail the whole page hangs off ------------------------------------ */
   --page-max: 72rem;
@@ -90,10 +91,12 @@
   --color-accent-cyan: var(--accent-cyan);
   --color-accent-teal: var(--accent-teal);
 
-  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
-  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  /* `inline` matters here: Tailwind substitutes the value into the utility
+     instead of re-declaring the custom property at :root, so these never
+     collide with the theme-owned --font-* tokens they resolve through. */
+  --font-sans: var(--ui-body);
+  --font-mono: var(--ui-mono);
+  --font-display: var(--ui-display);
 }
 
 /* ---------------------------------------------------------------------------
@@ -103,8 +106,7 @@
 body {
   background: var(--ground);
   color: var(--ink);
-  font-family: var(--font-figtree), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", sans-serif;
+  font-family: var(--ui-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -207,7 +209,7 @@ body {
   /* -- type ------------------------------------------------------------- */
 
   .mono {
-    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-family: var(--ui-mono);
     font-variant-numeric: tabular-nums;
   }
 
@@ -220,17 +222,21 @@ body {
 
   /* The chapter/section micro-line. 13px floor keeps --muted at AA. */
   .eyebrow {
-    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-family: var(--ui-mono);
     font-size: 0.8125rem;
     letter-spacing: 0.26em;
     text-transform: uppercase;
     color: var(--muted);
   }
 
-  /* City names and the person's name — Fraunces, warm, set tight. */
+  /* City names and the person's name — the display face, set tight.
+     font-synthesis-weight is off on every display class: a theme whose
+     display face ships one real weight (an editorial serif, say) then
+     renders its true drawing instead of a faux-bolded smear of it. */
   .city-type {
-    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-family: var(--ui-display);
     font-weight: 600;
+    font-synthesis-weight: none;
     line-height: 0.94;
     letter-spacing: -0.022em;
     color: var(--ink);
@@ -238,8 +244,9 @@ body {
 
   /* The mileage numerals. Same face, tabular, accent-coloured. */
   .numeral {
-    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-family: var(--ui-display);
     font-weight: 600;
+    font-synthesis-weight: none;
     font-variant-numeric: tabular-nums lining-nums;
     line-height: 0.86;
     letter-spacing: -0.03em;
@@ -344,13 +351,16 @@ body {
 
   /* -- surfaces ---------------------------------------------------------- */
 
-  /* The warm panel a live demo sits in. No glass, no blur, no chrome. */
+  /* The panel a live demo sits in. No glass, no blur, no chrome. Class name
+     is historical — components reference it, so it stays. The drop shadow is
+     a low-alpha black, which reads as depth on a dark ground and as a faint
+     bottom edge on a light one; neither theme has to opt out of it. */
   .warm-panel {
     position: relative;
     border-radius: 14px;
     background: var(--panel);
     border: 1px solid var(--rule);
-    box-shadow: 0 30px 60px -46px rgba(0, 0, 0, 0.95);
+    box-shadow: 0 30px 60px -46px rgba(0, 0, 0, 0.55);
   }
   /* The well the demo body itself renders into — a shade deeper than panel. */
   .demo-well {
@@ -369,7 +379,7 @@ body {
     border: 1px solid var(--rule);
     border-radius: 999px;
     padding: 0.15em 0.6em;
-    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-family: var(--ui-mono);
     font-size: 0.6875rem;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.06em;
@@ -401,11 +411,11 @@ body {
     display: inline-flex;
     align-items: baseline;
     gap: 0.45em;
-    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-family: var(--ui-mono);
     font-variant-numeric: tabular-nums;
   }
   .status-icon::before {
-    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-family: var(--ui-mono);
     flex: none;
   }
   .status-pass {
@@ -442,7 +452,7 @@ body {
     border: 1px solid var(--rule);
     border-radius: 999px;
     padding: 0.4em 0.95em;
-    font-family: var(--font-plex-mono), ui-monospace, monospace;
+    font-family: var(--ui-mono);
     font-size: 0.75rem;
     letter-spacing: 0.06em;
     color: var(--ink-soft);
@@ -493,18 +503,19 @@ body {
 
   /* -- compatibility ----------------------------------------------------- */
   /* Still referenced by /writing and by components/checks/reflight.tsx.
-     Retuned into the warm palette; no glass, no theatre. */
+     Written against the token contract only; no glass, no theatre. */
 
   .credit-line {
-    font-family: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
+    font-family: var(--ui-mono);
     font-size: 0.8125rem;
     letter-spacing: 0.26em;
     text-transform: uppercase;
     color: var(--muted);
   }
   .scene-title {
-    font-family: var(--font-fraunces), Georgia, "Times New Roman", serif;
+    font-family: var(--ui-display);
     font-weight: 600;
+    font-synthesis-weight: none;
     line-height: 0.98;
     letter-spacing: -0.02em;
     color: var(--ink);
@@ -539,5 +550,89 @@ body {
   .rv-dim {
     animation: enter-in 0.9s ease both;
     animation-delay: var(--rv-delay, 0s);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   TEMPORARY — the direction picker (components/ThemeSwitcher.tsx).
+
+   Delete this whole block, that component, its mount in app/layout.tsx and
+   three of the four files in app/themes/ once a direction is chosen. It is
+   deliberately styled from the same tokens as everything else, so it looks
+   native to whichever theme is showing rather than sitting on top of it.
+--------------------------------------------------------------------------- */
+
+.theme-switcher {
+  position: fixed;
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.2rem;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.3rem 0.3rem 0.3rem 0.65rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--panel);
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.6);
+  font-family: var(--ui-mono);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.theme-switcher__tag {
+  padding-right: 0.15rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.theme-switcher__btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.35em 0.7em;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.theme-switcher__btn:hover {
+  color: var(--ink);
+  border-color: var(--rule);
+}
+.theme-switcher__btn[aria-pressed="true"] {
+  color: var(--ink);
+  border-color: var(--route);
+}
+
+/* Narrow phones: tighten it enough to stay on one line rather than wrap into
+   a two-row slab over the bottom of the page. */
+@media (max-width: 480px) {
+  .theme-switcher {
+    gap: 0.1rem;
+    padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+    font-size: 0.6875rem;
+  }
+  .theme-switcher__tag {
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+  }
+  .theme-switcher__btn {
+    padding: 0.35em 0.5em;
+  }
+}
+
+@media print {
+  .theme-switcher {
+    display: none !important;
   }
 }
