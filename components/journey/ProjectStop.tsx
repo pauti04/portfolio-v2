@@ -40,12 +40,15 @@ export default function ProjectStop({
   children,
   variant = "stop",
   delay = 0,
+  onRail = true,
 }: {
   slug: CheckSlug;
   /** the live demo body */
   children: ReactNode;
   variant?: Variant;
   delay?: number;
+  /** false outside the journey section, where there is no route line to hang off */
+  onRail?: boolean;
 }) {
   const claim = claimBySlug(slug);
   const { states, runCheck } = useChecks();
@@ -75,11 +78,21 @@ export default function ProjectStop({
       ref={ref}
       id={`stop-${slug}`}
       aria-labelledby={headingId}
-      className={`scroll-mt-16 ${companion ? "mt-10 sm:mt-12" : "on-rail on-rail-stop"}`}
+      className={`scroll-mt-16 ${
+        companion
+          ? "mt-10 sm:mt-12"
+          : onRail
+            ? "on-rail on-rail-stop"
+            : "mt-24 border-t border-rule-soft pt-16 sm:mt-28 sm:pt-20"
+      }`}
       style={enterStyle(delay, { "--node-top": "0.3rem" })}
     >
       <p className="eyebrow">
-        {companion ? "Same core, different surface" : "Built here"}
+        {companion
+          ? "Same core, different surface"
+          : onRail
+            ? "Built here"
+            : "System"}
         <span aria-hidden="true"> · </span>
         {claim.id}
       </p>

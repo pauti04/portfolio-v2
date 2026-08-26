@@ -45,13 +45,28 @@ test.describe("the opening screen — answered before you touch anything", () =>
       "Parth Auti",
     );
 
-    // what — the route, in one line, above the fold
+    // what — the work leads, above the fold
     const opening = page.locator("header").first();
-    await expect(opening).toContainText("Pune to Manipal to Charlotte");
-    await expect(opening).toContainText("9,083 miles");
+    await expect(opening).toContainText("Seven systems");
 
     // when — the availability answer, no scrolling, no animation
     await expect(opening).toContainText("December 2026");
+  });
+
+  test("the journey is one section, not the whole page", async ({ page }) => {
+    await page.goto("/");
+    // the work comes first in the document, the road here follows it
+    const work = page.locator("#work");
+    const journey = page.locator("#journey");
+    await expect(work).toHaveCount(1);
+    await expect(journey).toHaveCount(1);
+    await expect(journey).toContainText("9,083 miles");
+    // the route line exists, and only inside the journey section
+    await expect(journey.locator(".route-spine")).toHaveCount(1);
+    await expect(page.locator(".route-spine")).toHaveCount(1);
+    // every project stop sits in the work section, none inside the journey
+    await expect(work.locator("article[id^='stop-']")).toHaveCount(7);
+    await expect(journey.locator("article[id^='stop-']")).toHaveCount(0);
   });
 
   test("GitHub, resume and email links are present without interaction", async ({

@@ -48,25 +48,21 @@ const charlotte = chapterById("charlotte");
 function Opening() {
   return (
     <header className="flex min-h-[100svh] flex-col justify-center py-20">
-      <p className="eyebrow">
-        <span aria-hidden="true">{JOURNEY.route}</span>
-        <span className="sr-only">{JOURNEY.routeSpoken}</span>
-      </p>
+      <p className="eyebrow">Software engineer · systems + ML</p>
 
       <h1 className="city-type mt-6 text-[clamp(3.25rem,12vw,9rem)]">
         {CONTACT.name}
       </h1>
 
       <p className="mt-8 max-w-[26ch] text-[clamp(1.375rem,4.4vw,2.125rem)] leading-[1.22] text-ink">
-        Pune to Manipal to Charlotte.{" "}
-        <span className="text-route">9,083 miles</span>, three cities, seven
-        systems that run.
+        <span className="text-route">Seven systems</span> that run — and every
+        one of them runs right here.
       </p>
 
       <p className="mt-6 max-w-[54ch] text-[1.0625rem] leading-relaxed text-ink-soft">
-        Software engineer — AI agent reliability and applied ML. Every system
-        below runs on this page: live where it can, from a labelled recording
-        where it cannot.
+        AI agent reliability and applied ML. A flight recorder for agents, a
+        matching engine, a detector on the live global BGP feed: live where
+        they can be, from a labelled recording where they cannot.
       </p>
 
       <p className="mono mt-9 max-w-[46ch] text-[0.8125rem] leading-relaxed text-ink-soft">
@@ -91,9 +87,13 @@ function Opening() {
         </Link>
       </nav>
 
-      <p className="mono mt-14 text-[0.8125rem] tracking-[0.14em] text-muted">
-        <a className="quiet-link text-muted" href="#chapter-pune">
-          Follow the line <span aria-hidden="true">↓</span>
+      <p className="mono mt-14 flex flex-wrap gap-x-8 gap-y-3 text-[0.8125rem] tracking-[0.14em] text-muted">
+        <a className="quiet-link text-muted" href="#work">
+          Start with the work <span aria-hidden="true">↓</span>
+        </a>
+        <a className="quiet-link text-muted" href="#journey">
+          <span aria-hidden="true">{JOURNEY.route}</span>
+          <span className="sr-only">{JOURNEY.routeSpoken}</span>
         </a>
       </p>
     </header>
@@ -197,58 +197,110 @@ function Arrival() {
 // The journey
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// The work — the bulk of the page. Flagship first, weakest last, each one
+// running. No route line here; these stand on their own.
+// ---------------------------------------------------------------------------
+
+function Work() {
+  return (
+    <section
+      id="work"
+      aria-labelledby="work-title"
+      className="scroll-mt-16 pt-24 sm:pt-32"
+    >
+      <p className="eyebrow">The work</p>
+      <h2
+        id="work-title"
+        className="city-type mt-4 text-[clamp(2.25rem,7vw,4rem)]"
+      >
+        Seven systems
+      </h2>
+      <p className="mt-6 max-w-[58ch] text-[1.0625rem] leading-relaxed text-ink-soft">
+        Every one of them executes on this page. The figures below are measured
+        at build time — press <span className="text-ink">run it</span> on any of
+        them and they are replaced by numbers from your own machine.
+      </p>
+
+      <ProjectStop slug="reflight" onRail={false}>
+        <ReflightCheck />
+      </ProjectStop>
+
+      <ProjectStop slug="bourse" onRail={false}>
+        <BourseCheck />
+      </ProjectStop>
+
+      <ProjectStop slug="netpulse" onRail={false}>
+        <NetPulseCheck />
+      </ProjectStop>
+
+      <ProjectStop slug="costdna" onRail={false}>
+        <CostDNACheck />
+      </ProjectStop>
+
+      <ProjectStop slug="chaincheck" onRail={false}>
+        <ChainCheckCheck />
+      </ProjectStop>
+      <ProjectStop slug="chaincheck-action" variant="companion">
+        <ChainCheckActionCheck />
+      </ProjectStop>
+
+      <ProjectStop slug="rasoibot" onRail={false}>
+        <RasoiBotCheck />
+      </ProjectStop>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// The road here — one section, self-contained. The route line lives only
+// inside it: Pune → 362 mi → Manipal → 8,720 mi → Charlotte.
+// ---------------------------------------------------------------------------
+
+function Journey() {
+  return (
+    <section
+      id="journey"
+      aria-labelledby="journey-title"
+      className="relative scroll-mt-16 pt-28 sm:pt-36"
+      style={{
+        marginLeft: "calc(var(--content-x) * -1)",
+        paddingLeft: "var(--content-x)",
+      }}
+    >
+      <RouteSpine />
+
+      <p className="eyebrow">
+        <span aria-hidden="true">{JOURNEY.route}</span>
+        <span className="sr-only">{JOURNEY.routeSpoken}</span>
+      </p>
+      <h2
+        id="journey-title"
+        className="city-type mt-4 text-[clamp(2.25rem,7vw,4rem)]"
+      >
+        The road here
+      </h2>
+      <p className="mt-6 max-w-[56ch] text-[1.0625rem] leading-relaxed text-ink-soft">
+        Three cities and <span className="text-route">9,083 miles</span>, in the
+        order they happened.
+      </p>
+
+      <Chapter chapter={pune} />
+      <DistanceMarker leg={LEGS[0]} />
+      <Chapter chapter={manipal} />
+      <DistanceMarker leg={LEGS[1]} />
+      <Chapter chapter={charlotte} />
+    </section>
+  );
+}
+
 export default function Home() {
   return (
     <RunAllProvider>
       <main className="relative mx-auto w-full max-w-[var(--page-max)] pr-5 pb-8 pl-[var(--content-x)] sm:pr-10 lg:pr-16">
-        <RouteSpine />
-
         <Opening />
-
-        {/* ------------------------------------------------ chapter one */}
-        <Chapter chapter={pune} />
-
-        {/* 362 miles */}
-        <DistanceMarker leg={LEGS[0]} />
-
-        {/* ------------------------------------------------ chapter two */}
-        <Chapter chapter={manipal}>
-          <ProjectStop slug="rasoibot">
-            <RasoiBotCheck />
-          </ProjectStop>
-        </Chapter>
-
-        {/* 8,720 miles — the big one */}
-        <DistanceMarker leg={LEGS[1]} />
-
-        {/* ---------------------------------------------- chapter three */}
-        <Chapter chapter={charlotte}>
-          <div>
-            <ProjectStop slug="chaincheck">
-              <ChainCheckCheck />
-            </ProjectStop>
-            <ProjectStop slug="chaincheck-action" variant="companion">
-              <ChainCheckActionCheck />
-            </ProjectStop>
-          </div>
-
-          <ProjectStop slug="costdna">
-            <CostDNACheck />
-          </ProjectStop>
-
-          <ProjectStop slug="netpulse">
-            <NetPulseCheck />
-          </ProjectStop>
-
-          <ProjectStop slug="bourse">
-            <BourseCheck />
-          </ProjectStop>
-
-          <ProjectStop slug="reflight">
-            <ReflightCheck />
-          </ProjectStop>
-        </Chapter>
-
+        <Work />
+        <Journey />
         <Arrival />
       </main>
     </RunAllProvider>
