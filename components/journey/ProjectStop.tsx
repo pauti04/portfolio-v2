@@ -10,13 +10,21 @@
 //
 // The demo body is passed in as children — this component is the frame, the
 // check components are the picture, and they are restyled on their own stage.
+//
+// Colour: the root publishes --proj (lib/projectColors.ts) so the block and
+// everything inside it carry one accent. It lands in exactly five places —
+// the eyebrow, the headline VALUES, the 2px tab, the "Figure N —" prefix, and
+// (via globals.css) the live dot / running state / run control — and nowhere
+// else. Name, tagline, labels, notes and copy stay ink. Nothing here is
+// colour-only: every accented value sits next to its label.
 // ----------------------------------------------------------------------------
 
 import type { ReactNode } from "react";
 import CheckLog from "@/components/CheckLog";
-import { useChecks } from "@/components/RunAllProvider";
+import { RUN_CONTROL_CLASS, useChecks } from "@/components/RunAllProvider";
 import { claimBySlug, type CheckSlug } from "@/lib/claims";
 import { headlineEvidence, taglineFor } from "@/lib/journey";
+import { projectAccent } from "@/lib/projectColors";
 import { enterStyle, useEnterRef } from "./Enter";
 
 type Variant = "stop" | "companion";
@@ -78,16 +86,16 @@ export default function ProjectStop({
       ref={ref}
       id={`stop-${slug}`}
       aria-labelledby={headingId}
-      className={`scroll-mt-16 ${
+      className={`scroll-mt-16 proj-tab ${
         companion
-          ? "mt-10 sm:mt-12"
+          ? "proj-tab-short mt-12 sm:mt-14"
           : onRail
             ? "on-rail on-rail-stop"
-            : "mt-24 border-t border-rule-soft pt-16 sm:mt-28 sm:pt-20"
+            : "mt-16 border-t border-rule-soft pt-16 sm:mt-20 sm:pt-20 [--proj-tab-top:4rem] sm:[--proj-tab-top:5rem]"
       }`}
-      style={enterStyle(delay, { "--node-top": "0.3rem" })}
+      style={enterStyle(delay, { "--node-top": "0.3rem", "--proj": projectAccent(slug) })}
     >
-      <p className="eyebrow">
+      <p className="eyebrow proj-ink">
         {companion
           ? "Same core, different surface"
           : onRail
@@ -123,7 +131,7 @@ export default function ProjectStop({
             <dt className="mono text-[0.6875rem] tracking-[0.14em] text-muted uppercase">
               {row.metric}
             </dt>
-            <dd className="font-display mt-2 text-[1.75rem] leading-none tracking-tight text-ink tabular-nums">
+            <dd className="proj-ink font-display mt-2 text-[1.75rem] leading-none tracking-tight tabular-nums">
               {row.value}
             </dd>
             <dd className="mt-2 text-[0.8125rem] leading-snug text-muted">{row.note}</dd>
@@ -141,7 +149,7 @@ export default function ProjectStop({
         <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <span className="mono text-[0.6875rem] tracking-[0.18em] text-ink-soft uppercase">
-              Figure {claim.figure.n} — {claim.name}
+              <span className="proj-ink">Figure {claim.figure.n} —</span> {claim.name}
             </span>
             <span className="provenance" data-mode={provenance.key}>
               {provenance.label}
@@ -157,7 +165,7 @@ export default function ProjectStop({
             </span>
             <button
               type="button"
-              className="run-control"
+              className={RUN_CONTROL_CLASS}
               onClick={() => runCheck(slug)}
               disabled={running}
               aria-label={`Run the ${claim.name} check — currently ${statusLabel}`}

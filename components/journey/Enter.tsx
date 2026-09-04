@@ -22,6 +22,12 @@ import {
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
+/** Where "below the fold" begins, as a fraction of the viewport height. An
+ *  element whose top is above this line counts as on screen — both when
+ *  deciding whether to prime it and when deciding whether to reveal it, so
+ *  the two tests can never disagree and leave something hidden. */
+const FOLD = 0.92;
+
 export type EnterVariant = "up" | "fade";
 
 /** Attach to any element to give it the entrance behaviour. */
@@ -34,7 +40,7 @@ export function useEnterRef<T extends HTMLElement>(variant: EnterVariant = "up")
     if (typeof IntersectionObserver === "undefined") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // Already on screen (or scrolled past): leave it exactly as it is.
-    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+    if (el.getBoundingClientRect().top < window.innerHeight * FOLD) return;
 
     if (variant === "fade") el.dataset.enterVariant = "fade";
     el.dataset.enter = "primed";
@@ -43,9 +49,13 @@ export function useEnterRef<T extends HTMLElement>(variant: EnterVariant = "up")
       (entries) => {
         for (const entry of entries) {
           // Reveal on arrival — or immediately if the reader jumped straight
-          // past it (anchor link, scroll restoration). Nothing stays hidden.
-          const passed = entry.boundingClientRect.top < 0;
-          if (!entry.isIntersecting && !passed) continue;
+          // past it, or landed INSIDE it (anchor link, scroll restoration: a
+          // tall element whose top sits in the viewport but whose visible
+          // slice is under the ratio threshold would otherwise stay primed
+          // until the next scroll). Any top above the fold line counts as
+          // seen. Nothing stays hidden.
+          const seen = entry.boundingClientRect.top < window.innerHeight * FOLD;
+          if (!entry.isIntersecting && !seen) continue;
           el.dataset.enter = "in";
           io.disconnect();
         }

@@ -1,14 +1,16 @@
 // ----------------------------------------------------------------------------
 // Working notes · NetPulse · No. 01
 //
-// Warm ground, warm ink, journey type. Code excerpts sit in a warm panel with
-// a thin accent rule — not a dark terminal, not a white sheet.
+// Blueprint ground, journey type, under the site's fixed nav with a --route
+// reading-progress hairline along the top edge. Code excerpts sit in a lifted
+// panel with a thin route rule — not a terminal, not a sheet.
 //
 // Every word of the article is ported verbatim from the previous build.
 // ----------------------------------------------------------------------------
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import ReadingProgress from "@/components/motion/ReadingProgress";
 import { CONTACT } from "@/lib/claims";
 
 export const metadata: Metadata = {
@@ -90,11 +92,14 @@ const P = "mt-5 text-[0.9688rem] leading-[1.8] text-ink-soft";
 export default function Post() {
   return (
     <main className="mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+      <ReadingProgress />
+
+      {/* Running head under the fixed nav: the way back, top and bottom. */}
       <nav
-        aria-label="site"
-        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-rule pt-8 pb-4 text-[0.8125rem]"
+        aria-label="breadcrumb"
+        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pt-8 text-[0.8125rem] text-muted"
       >
-        <Link href="/" className="quiet-link">
+        <Link href="/" className="quiet-link text-muted">
           <span aria-hidden="true">← </span>the journey
         </Link>
         <Link href="/writing" className="quiet-link text-muted">
@@ -102,7 +107,7 @@ export default function Post() {
         </Link>
       </nav>
 
-      <header className="pt-14">
+      <header className="pt-[var(--sect-gap-1)]">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
           <p className="eyebrow">Working notes · NetPulse · No. 01</p>
           <p className="mono text-[0.8125rem] text-muted">
@@ -301,7 +306,7 @@ export default function Post() {
         </p>
       </article>
 
-      <footer className="mono mt-20 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
+      <footer className="mono mt-[var(--sect-gap-2)] flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
         <span className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/writing" className="quiet-link">
             <span aria-hidden="true">← </span>all writing

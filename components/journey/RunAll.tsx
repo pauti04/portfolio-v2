@@ -6,7 +6,7 @@
 // announcements all already live there.
 // ----------------------------------------------------------------------------
 
-import { useChecks } from "@/components/RunAllProvider";
+import { RUN_CONTROL_CLASS, useChecks } from "@/components/RunAllProvider";
 
 export default function RunAll() {
   const { runAll, runningAll, passCount, total } = useChecks();
@@ -15,7 +15,7 @@ export default function RunAll() {
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
       <button
         type="button"
-        className="run-control"
+        className={RUN_CONTROL_CLASS}
         onClick={runAll}
         disabled={runningAll}
         aria-label={`Run all ${total} checks, top to bottom`}

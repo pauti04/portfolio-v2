@@ -227,7 +227,7 @@ export default function ChainCheckCheck() {
       <div className="mt-5 border-t border-rule pt-4">
         <p className={LABEL}>ensemble verdict, computed here</p>
         <p className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <span className="text-[0.9375rem] text-route">{result.verdict}</span>
+          <span className="proj-ink text-[0.9375rem]">{result.verdict}</span>
           <span className="text-[0.8125rem] text-ink-soft">{result.score.toFixed(2)}</span>
           <span className="text-[0.75rem] text-muted">
             {result.badCount}/5 detectors flag · 4-of-5 required

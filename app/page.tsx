@@ -12,7 +12,9 @@
 
 import Link from "next/link";
 
+import Colophon from "@/components/Colophon";
 import RunAllProvider from "@/components/RunAllProvider";
+import StatusStrip from "@/components/StatusStrip";
 import Chapter from "@/components/journey/Chapter";
 import DistanceMarker from "@/components/journey/DistanceMarker";
 import Enter from "@/components/journey/Enter";
@@ -43,11 +45,14 @@ const charlotte = chapterById("charlotte");
 // ---------------------------------------------------------------------------
 // Opening — name, one sentence, the route, and the availability answer, all
 // present in the markup before a single frame of animation runs.
+//
+// Natural height, not a forced viewport: the fold ends where the words end,
+// and the work begins one section-gap later on every screen.
 // ---------------------------------------------------------------------------
 
 function Opening() {
   return (
-    <header className="flex min-h-[100svh] flex-col justify-center py-20">
+    <header className="pt-24 sm:pt-32">
       <p className="eyebrow">Software engineer · systems + ML</p>
 
       <h1 className="city-type mt-6 text-[clamp(3.25rem,12vw,9rem)]">
@@ -58,6 +63,11 @@ function Opening() {
         <span className="text-route">Seven systems</span> that run — and every
         one of them runs right here.
       </p>
+
+      {/* the receipt for that sentence — same data the Arrival reads */}
+      <div className="mt-5">
+        <StatusStrip />
+      </div>
 
       <p className="mt-6 max-w-[54ch] text-[1.0625rem] leading-relaxed text-ink-soft">
         AI agent reliability and applied ML. A flight recorder for agents, a
@@ -87,15 +97,27 @@ function Opening() {
         </Link>
       </nav>
 
-      <p className="mono mt-14 flex flex-wrap gap-x-8 gap-y-3 text-[0.8125rem] tracking-[0.14em] text-muted">
-        <a className="quiet-link text-muted" href="#work">
-          Start with the work <span aria-hidden="true">↓</span>
+      <div className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-4 sm:mt-14">
+        <a
+          className="group mono inline-flex items-center gap-2 rounded-full border border-rule px-4 py-2 text-[0.8125rem] text-ink transition-[border-color,background-color,transform] duration-150 hover:border-ink-soft active:translate-y-px active:bg-panel"
+          href="#work"
+        >
+          Start with the work{" "}
+          <span
+            aria-hidden="true"
+            className="transition-transform duration-150 group-hover:translate-y-0.5"
+          >
+            ↓
+          </span>
         </a>
-        <a className="quiet-link text-muted" href="#journey">
+        <a
+          className="quiet-link mono text-[0.8125rem] tracking-[0.14em] text-muted"
+          href="#journey"
+        >
           <span aria-hidden="true">{JOURNEY.route}</span>
           <span className="sr-only">{JOURNEY.routeSpoken}</span>
         </a>
-      </p>
+      </div>
     </header>
   );
 }
@@ -125,7 +147,7 @@ function Arrival() {
         </p>
       </Enter>
 
-      <Enter delay={0.06} className="mt-14">
+      <Enter delay={0.06} className="mt-12 sm:mt-14">
         <h3 className="eyebrow">Looking for</h3>
         <ul className="mt-6 max-w-[62ch] space-y-3">
           {LOOKING_FOR.map((line) => (
@@ -137,7 +159,7 @@ function Arrival() {
         </ul>
       </Enter>
 
-      <Enter delay={0.1} className="mt-14">
+      <Enter delay={0.1} className="mt-12 sm:mt-14">
         <h3 className="eyebrow">Get in touch</h3>
         <div className="mt-6 flex flex-col gap-4">
           <a
@@ -166,7 +188,7 @@ function Arrival() {
         </p>
       </Enter>
 
-      <Enter delay={0.14} className="mt-16">
+      <Enter delay={0.14} className="mt-12 sm:mt-14">
         <h3 className="eyebrow">Every demo above runs</h3>
         <p className="mt-5 max-w-[56ch] text-[0.9375rem] leading-relaxed text-ink-soft">
           The page is pre-verified at build time, so it is honest before you
@@ -178,7 +200,7 @@ function Arrival() {
         </div>
       </Enter>
 
-      <Enter delay={0.18} variant="fade" className="mt-16 border-t border-rule pt-8">
+      <Enter delay={0.18} variant="fade" className="mt-12 border-t border-rule pt-8 sm:mt-14">
         <p className="max-w-[64ch] text-[0.875rem] leading-relaxed text-muted">
           <span className="text-ink-soft">What this page does not claim:</span>{" "}
           {DOES_NOT_CLAIM[0]} {DOES_NOT_CLAIM[1]} {DOES_NOT_CLAIM[3]}
@@ -192,10 +214,6 @@ function Arrival() {
     </section>
   );
 }
-
-// ---------------------------------------------------------------------------
-// The journey
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // The work — the bulk of the page. Flagship first, weakest last, each one
@@ -262,7 +280,7 @@ function Journey() {
     <section
       id="journey"
       aria-labelledby="journey-title"
-      className="relative scroll-mt-16 pt-28 sm:pt-36"
+      className="relative scroll-mt-16 pt-24 sm:pt-32"
       style={{
         marginLeft: "calc(var(--content-x) * -1)",
         paddingLeft: "var(--content-x)",
@@ -297,12 +315,13 @@ function Journey() {
 export default function Home() {
   return (
     <RunAllProvider>
-      <main className="relative mx-auto w-full max-w-[var(--page-max)] pr-5 pb-8 pl-[var(--content-x)] sm:pr-10 lg:pr-16">
+      <main className="relative mx-auto w-full max-w-[var(--page-max)] pr-5 pl-[var(--content-x)] sm:pr-10 lg:pr-16">
         <Opening />
         <Work />
         <Journey />
         <Arrival />
       </main>
+      <Colophon />
     </RunAllProvider>
   );
 }

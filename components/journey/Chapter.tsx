@@ -51,13 +51,15 @@ export default function Chapter({
         </p>
       </Enter>
 
-      <ul className="mt-14 space-y-11 sm:mt-16">
+      <ul className="mt-12 space-y-11 sm:mt-14">
         {chapter.milestones.map((m, i) => (
           <Milestone key={m.id} item={m} delay={Math.min(i, 3) * 0.06} />
         ))}
       </ul>
 
-      {children && <div className="mt-20 space-y-20 sm:mt-24 sm:space-y-24">{children}</div>}
+      {children && (
+        <div className="mt-16 space-y-16 sm:mt-20 sm:space-y-20">{children}</div>
+      )}
     </section>
   );
 }

@@ -1,9 +1,9 @@
 // ----------------------------------------------------------------------------
 // WRITING — a short branch off the route.
 //
-// Same warm ground, same rail, same type as the journey. Each post is a stop
-// on a short line: eyebrow, display-face title, summary. No panels here —
-// panels are reserved for excerpts and demo bodies.
+// Same ground, same rail, same type as the journey, under the same fixed nav.
+// Each post is a stop on a short line: eyebrow, display-face title, summary.
+// No panels here — panels are reserved for excerpts and demo bodies.
 //
 // Every word of copy is ported verbatim from the previous build and from
 // lib/claims.ts. Nothing is authored here except the chrome.
@@ -37,37 +37,30 @@ function Rail() {
 export default function WritingIndex() {
   return (
     <main className="relative mx-auto w-full max-w-3xl px-5 pb-24 sm:px-8">
+      {/* Running head under the fixed nav: where you came from, where you are. */}
       <nav
-        aria-label="site"
-        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-rule pt-8 pb-4 text-[0.8125rem]"
+        aria-label="breadcrumb"
+        className="mono flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 pt-8 text-[0.8125rem] text-muted"
       >
-        <Link href="/" className="quiet-link">
+        <Link href="/" className="quiet-link text-muted">
           <span aria-hidden="true">← </span>the journey
         </Link>
-        <div className="flex flex-wrap gap-x-6 gap-y-1">
-          <a href={CONTACT.github} className="quiet-link text-muted">
-            github
-          </a>
-          <span aria-current="page" className="text-ink-soft">
-            writing
-          </span>
-          <Link href={CONTACT.resumeHref} className="quiet-link text-muted">
-            cv
-          </Link>
-        </div>
+        <span aria-current="page" className="text-ink-soft">
+          writing
+        </span>
       </nav>
 
-      <header className="pt-16">
+      <header className="pt-[var(--sect-gap-1)]">
         <p className="eyebrow">Working notes</p>
         <h1 className="city-type mt-6 text-[clamp(3rem,11vw,5.5rem)]">Writing.</h1>
-        <p className="mt-7 max-w-[54ch] text-[1.0625rem] leading-[1.75] text-ink-soft">
+        <p className="mt-6 max-w-[54ch] text-[1.0625rem] leading-relaxed text-ink-soft">
           Short technical writeups on the systems from the checks ledger — the decisions that
           mattered and the numbers behind them. Every figure quoted is reproducible from the
           repos.
         </p>
       </header>
 
-      <div className="relative mt-16 pl-[var(--rail-gap)]">
+      <div className="relative mt-[var(--sect-gap-1)] pl-[var(--rail-gap)]">
         <Rail />
 
         <ol className="space-y-14">
@@ -103,10 +96,18 @@ export default function WritingIndex() {
         </ol>
       </div>
 
-      <footer className="mono mt-20 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
-        <Link href="/" className="quiet-link text-muted">
-          <span aria-hidden="true">← </span>back to the journey
-        </Link>
+      <footer className="mono mt-[var(--sect-gap-2)] flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-rule pt-6 text-[0.8125rem]">
+        <span className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/" className="quiet-link text-muted">
+            <span aria-hidden="true">← </span>back to the journey
+          </Link>
+          <Link href={CONTACT.resumeHref} className="quiet-link text-muted">
+            cv
+          </Link>
+          <a href={CONTACT.github} className="quiet-link text-muted">
+            github
+          </a>
+        </span>
         <a href={`mailto:${CONTACT.email}`} className="quiet-link text-muted">
           {CONTACT.email}
         </a>

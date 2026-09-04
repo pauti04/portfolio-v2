@@ -280,7 +280,7 @@ function ShareBar({ pct, live = false }: { pct: number; live?: boolean }) {
   return (
     <div className="h-1 w-full max-w-[7rem] rounded-full bg-rule" aria-hidden="true">
       <div
-        className={`h-1 rounded-full ${live ? "bg-route" : "bg-ink-soft"}`}
+        className={`h-1 rounded-full ${live ? "proj-fill" : "bg-ink-soft"}`}
         style={{ width: `${Math.min(100, Math.max(3, pct))}%` }}
       />
     </div>

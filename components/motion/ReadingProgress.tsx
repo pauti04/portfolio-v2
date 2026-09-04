@@ -1,11 +1,13 @@
 "use client";
 
 // ----------------------------------------------------------------------------
-// Reading-progress hairline for the writing pages. A fixed 2px bar at the
-// very top of the viewport, scaled horizontally with scroll position —
-// transform-only (zero CLS), rAF-throttled, cyan (the one accent hue).
+// Reading-progress hairline for the writing pages. A fixed 2px bar along the
+// very top edge of the viewport, scaled horizontally with scroll position —
+// transform-only (zero CLS), rAF-throttled. Drawn in --route: it is the route
+// through the post, the same way .route-fill is the route down the page.
 // Scroll-driven state rather than an animation, so it behaves identically
-// under prefers-reduced-motion; purely decorative, hidden from AT.
+// under prefers-reduced-motion; purely decorative, hidden from AT. Sits above
+// the fixed nav so it is never covered by the nav's own top edge.
 // ----------------------------------------------------------------------------
 
 import { useEffect, useRef } from "react";
@@ -40,10 +42,13 @@ export default function ReadingProgress() {
   }, []);
 
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-x-0 top-0 z-50 h-0.5">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[70] h-0.5 print:hidden"
+    >
       <div
         ref={barRef}
-        className="h-full w-full origin-left bg-accent-cyan"
+        className="h-full w-full origin-left bg-route"
         style={{ transform: "scaleX(0)" }}
       />
     </div>

@@ -1,46 +1,38 @@
 // ----------------------------------------------------------------------------
-// The glass panel chrome every scene demo renders inside. Slots:
-//   label       — accent mono micro-line (the system's name)
+// The panel chrome a scene demo renders inside. Slots:
+//   label       — mono micro-line (the system's name)
 //   provenance  — honest origin label: live / recorded / build-verified
 //   children    — the demo body (scrolls horizontally in its own region)
 //   credits     — "performance credits" footer: measured numbers, mono, dry
-// Pure chrome; no state. Scene agents replace the body, not this frame.
+// Pure chrome; no state. Written against the token contract only — the label
+// is ink, never the route: --route means the route, and nothing else. The
+// one accent here is the provenance chip's live dot, which globals.css draws
+// in var(--proj, var(--route)) — the project's colour inside a ProjectStop,
+// the route blue anywhere else.
 // ----------------------------------------------------------------------------
 
 import type { ReactNode } from "react";
 
-export type SceneAccent = "violet" | "cyan" | "teal" | "ivory";
 export type SceneProvenance = "live" | "recorded" | "build-verified";
-
-const accentClass: Record<SceneAccent, string> = {
-  violet: "text-accent-violet",
-  cyan: "text-accent-cyan",
-  teal: "text-accent-teal",
-  ivory: "text-ink-soft",
-};
 
 export default function ScenePanel({
   label,
-  accent = "ivory",
   provenance,
   credits,
   children,
   className,
 }: {
   label: string;
-  accent?: SceneAccent;
   provenance?: SceneProvenance;
   credits?: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={`glass-panel overflow-hidden ${className ?? ""}`}>
-      {/* header rail */}
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule px-5 py-3.5 sm:px-6">
-        <span
-          className={`mono text-[0.6875rem] tracking-[0.2em] uppercase ${accentClass[accent]}`}
-        >
+    <div className={`warm-panel overflow-hidden ${className ?? ""}`}>
+      {/* header rail — same measure as the ProjectStop panel header */}
+      <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 px-4 py-3.5 sm:px-5">
+        <span className="mono text-[0.6875rem] tracking-[0.18em] text-ink-soft uppercase">
           {label}
         </span>
         {provenance && (
@@ -52,7 +44,7 @@ export default function ScenePanel({
 
       {/* body */}
       <div
-        className="overflow-x-auto"
+        className="demo-well overflow-x-auto"
         tabIndex={0}
         role="region"
         aria-label={`${label} demo`}
@@ -62,7 +54,7 @@ export default function ScenePanel({
 
       {/* performance credits */}
       {credits && (
-        <div className="mono border-t border-rule px-5 py-3 text-[0.6875rem] leading-relaxed text-ink-soft sm:px-6">
+        <div className="mono px-4 py-3 text-[0.6875rem] leading-relaxed text-ink-soft sm:px-5">
           <span className="credit-line mr-3 text-[0.625rem] tracking-[0.24em]">
             Performance&nbsp;credits
           </span>

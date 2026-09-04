@@ -1,10 +1,11 @@
 // ----------------------------------------------------------------------------
 // CV — two renderings of one sheet.
 //
-// On screen it sits in the journey's warm theme with the same nav as every
-// other page. On paper it is black ink on white, A4, no chrome: the whole
-// palette is a handful of custom properties that swap inside @media print,
-// so there is exactly one markup tree and no duplicated layout.
+// On screen it sits on the Blueprint ground under the same fixed nav as every
+// other page, and its links are the site's quiet link. On paper it is black
+// ink on white, A4, no chrome: the whole palette is a handful of custom
+// properties that swap inside @media print, so there is exactly one markup
+// tree and no duplicated layout.
 //
 // Every fact comes from app/cv/resume.ts. Copy is ported verbatim.
 // ----------------------------------------------------------------------------
@@ -56,11 +57,12 @@ export default function CvPage() {
 
   return (
     <main className="cv-sheet min-h-screen">
+      {/* On screen SiteNav's spacer already clears the fixed bar; on paper there is no bar. */}
       <div className="mx-auto w-full max-w-[50rem] px-5 py-8 sm:px-8 print:max-w-none print:p-0">
         {/* controls — never printed */}
         <nav
           aria-label="cv controls"
-          className="cv-controls cv-rule mono mb-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b pb-4 text-[0.8125rem] print:hidden"
+          className="mono mb-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 text-[0.8125rem] print:hidden"
         >
           <span className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
             <Link href="/" className="cv-link">
@@ -280,7 +282,7 @@ export default function CvPage() {
       </div>
 
       <style>{`
-        /* One markup tree, two palettes. Screen: the journey's warm theme.
+        /* One markup tree, two palettes. Screen: the Blueprint tokens.
            Print: black ink on white paper, and nothing else. */
         .cv-sheet {
           --cv-ink: var(--ink);
@@ -297,32 +299,22 @@ export default function CvPage() {
         .cv-rule { border-color: var(--cv-rule); }
         .cv-hair { border-color: var(--cv-hair); }
 
+        /* The site's .quiet-link, redrawn on the swappable --cv-* palette so
+           the same underline prints as grey-on-white. Same offset, same
+           hairline, same hover/focus step (rule → dim, text → ink). */
         .cv-link {
           color: inherit;
+          border-radius: 2px;
           text-decoration: underline;
+          text-decoration-thickness: 1px;
           text-decoration-color: var(--cv-rule);
-          text-underline-offset: 0.22em;
+          text-underline-offset: 0.28em;
           transition: text-decoration-color 180ms ease, color 180ms ease;
         }
-        .cv-link:hover { color: var(--cv-ink); text-decoration-color: currentColor; }
-
-        /* The Save-as-PDF control lives in PdfButton.tsx; it is skinned from
-           here so that file stays untouched. Unlayered, so it wins over the
-           utility layer. */
-        .cv-controls button {
-          background: transparent;
-          color: var(--cv-dim);
-          border: 1px solid var(--cv-rule);
-          border-radius: 999px;
-          padding: 0.4em 0.95em;
-          font-family: var(--ui-mono);
-          font-size: 0.75rem;
-          letter-spacing: 0.06em;
-          transition: border-color 180ms ease, color 180ms ease;
-        }
-        .cv-controls button:hover {
-          border-color: var(--route);
+        .cv-link:hover,
+        .cv-link:focus-visible {
           color: var(--cv-ink);
+          text-decoration-color: var(--cv-dim);
         }
 
         @page { size: A4; margin: 13mm; }

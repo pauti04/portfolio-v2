@@ -75,7 +75,7 @@ export default function DistanceMarker({ leg }: { leg: Leg }) {
     <div
       ref={ref}
       className={`on-rail on-rail-marker ${
-        major ? "py-32 sm:py-48 lg:py-56" : "py-16 sm:py-20"
+        major ? "py-24 sm:py-32" : "py-16 sm:py-20"
       }`}
       style={{ "--node-top": "0.1rem" } as CSSProperties}
     >

@@ -128,7 +128,7 @@ export default function ChainCheckActionCheck() {
         <span className="text-muted">  with:</span>
         {"\n"}
         <span className="text-muted">    fail-threshold: </span>
-        <span className="text-route">{threshold.toFixed(2)}</span>
+        <span className="proj-ink">{threshold.toFixed(2)}</span>
       </pre>
 
       <div className="mt-5 border-t border-rule pt-4">
@@ -144,9 +144,9 @@ export default function ChainCheckActionCheck() {
             step={0.05}
             value={threshold}
             onChange={(e) => setThreshold(parseFloat(e.target.value))}
-            className="max-w-[10rem] min-w-[7rem] flex-1 accent-route"
+            className="proj-accent max-w-[10rem] min-w-[7rem] flex-1"
           />
-          <span className="text-[0.8125rem] text-route">{threshold.toFixed(2)}</span>
+          <span className="proj-ink text-[0.8125rem]">{threshold.toFixed(2)}</span>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-1.5" role="group" aria-label="sample PR picker">
@@ -200,7 +200,7 @@ export default function ChainCheckActionCheck() {
                     style={{ width: `${Math.max(3, c.score * 100)}%` }}
                   />
                   <span
-                    className="absolute -top-1 -bottom-1 w-px bg-route"
+                    className="proj-fill absolute -top-1 -bottom-1 w-px"
                     style={{ left: `${threshold * 100}%` }}
                   />
                 </span>

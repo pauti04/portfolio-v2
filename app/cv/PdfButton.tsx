@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 
 /**
- * Save-as-PDF control for the CV sheet. Also honors ?print=1 so external
- * links can deep-link straight into the print dialog.
+ * Save-as-PDF control for the CV sheet. Wears the site's one quiet button
+ * (.btn-quiet: hairline pill, hover, pressed, --route focus ring) and is never
+ * printed. Also honors ?print=1 so external links can deep-link straight into
+ * the print dialog.
  */
 export default function PdfButton() {
   useEffect(() => {
@@ -17,11 +19,7 @@ export default function PdfButton() {
   }, []);
 
   return (
-    <button
-      type="button"
-      onClick={() => window.print()}
-      className="border border-[#c9c9c9] bg-white px-3 py-1.5 text-xs text-[#151515] transition-colors hover:border-[#151515] print:hidden"
-    >
+    <button type="button" onClick={() => window.print()} className="btn-quiet print:hidden">
       Save as PDF
     </button>
   );

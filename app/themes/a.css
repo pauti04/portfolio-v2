@@ -66,13 +66,59 @@
    --route-deep and --rule / --rule-soft are non-text only (a gradient stop
    and hairline borders respectively) and are excluded from the text ratios
    above by design.
+
+   ── PROJECT ACCENTS ───────────────────────────────────────────────────────
+
+   The one licensed departure from "one blue". Each of the seven systems owns
+   a hue, so the stops stop blurring together and become scannable at a
+   glance — but this is an accent system, not a rainbow. Ground stays
+   --ground, body stays --ink, --route still means the route, --pass/--fail
+   are untouched. The values are NOT tokens in the block below: they live in
+   lib/projectColors.ts and reach the page as --proj, set inline on each
+   ProjectStop root, so nothing outside a project block can read one by
+   accident. Everything that reads it reads `var(--proj, var(--route))`.
+
+                              on --ground   on --ground-deep   on --panel
+                                #0A0D12        #05070A          #12161D
+     reflight          #4C86FF    5.71:1         5.92:1           5.32:1
+     bourse            #A78BFA    7.15:1         7.41:1           6.66:1
+     netpulse          #22D3EE   10.77:1        11.16:1          10.03:1
+     costdna           #4ADE80   11.17:1        11.57:1          10.41:1
+     chaincheck        #F5B544   10.73:1        11.12:1           9.99:1
+     chaincheck-action #F5B544   10.73:1        11.12:1           9.99:1
+     rasoibot          #A3E635   12.91:1        13.38:1          12.02:1
+
+   All seven clear AA 4.5:1 for text on every surface; the lowest is the
+   flagship's own blue on --panel at 5.32:1, the same floor as --route.
+   Hue spread: blue 220° · violet 260° · cyan 190° · green 140° · amber 40° ·
+   lime 80°. Nothing sits next to --fail (#FF5A6E, ~353°), so no accent can
+   be read as an error state. chaincheck-action shares chaincheck's amber
+   on purpose — it is the companion, and the shared hue says so.
+
+   ALLOWED — exactly these, nothing else:
+     1. the project eyebrow ("Built here · CHK-05")
+     2. the 2–3 headline metric VALUES (94%, 19×) — labels and notes stay muted
+     3. a 2px tab on the project root: solid for the top 3rem, then fading
+        to transparent; 1.5rem for the companion variant
+     4. inside the check panel: the live dot, the running state, and the run
+        control's hover border / focus ring — verdicts stay --pass / --fail
+     5. the figure-caption prefix ("Figure 5 —") at the mono size
+     6. a journey marker dot where a milestone names a project (none do yet)
+
+   FORBIDDEN:
+     headings and titles (ink) · body copy · any background or fill (no
+     tinted cards) · the route line, distance markers and site nav (route /
+     ink) · links (quiet-link) · gradients on text · glows · more than one
+     accent visible in a project block.
+
+   Colour is never the only carrier of meaning: every accented value sits
+   beside its label, every state keeps its glyph.
 --------------------------------------------------------------------------- */
 
-/* The bare `html:not([data-theme])` arm is a safety net, not a second theme:
-   <html> is always rendered with data-theme, but if it ever were not, this
-   keeps the token contract satisfied instead of leaving the page unpainted. */
-html[data-theme="a"],
-html:not([data-theme]) {
+/* Applied unconditionally at :root. This is the site's one and only theme —
+   there is no data-theme attribute, no boot script and no runtime switching.
+   The token block below is the entire palette everything else is drawn from. */
+:root {
   /* type — one grotesque across display and body, one mono for data */
   --font-display: var(--ff-archivo);
   --font-body: var(--ff-archivo);

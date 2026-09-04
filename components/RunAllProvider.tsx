@@ -58,6 +58,18 @@ type Ctx = {
 
 const RunAllContext = createContext<Ctx | null>(null);
 
+/**
+ * The one control style. Every run button on the page — "run it", "run again",
+ * "run all 7" — wears exactly this string, so they can never drift apart.
+ * `.run-control` (globals.css) draws the pill, its hover and its disabled
+ * state; the utilities here add the pressed state on top, and undo it while
+ * the control is disabled. Focus-visible is the site-wide --route ring.
+ */
+export const RUN_CONTROL_CLASS =
+  "run-control cursor-pointer select-none transition-[border-color,color,background-color,transform] duration-150 " +
+  "active:translate-y-px active:bg-panel " +
+  "disabled:cursor-default disabled:active:translate-y-0 disabled:active:bg-transparent";
+
 export function useChecks(): Ctx {
   const ctx = useContext(RunAllContext);
   if (!ctx) throw new Error("useChecks must be used inside <RunAllProvider>");
@@ -95,8 +107,12 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
   const [announcement, setAnnouncement] = useState("");
   const [lite, setLite] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  // Mirrors `states` for the async runners, which need the latest value after
+  // an await. Synced after commit, never written during render.
   const statesRef = useRef(states);
-  statesRef.current = states;
+  useEffect(() => {
+    statesRef.current = states;
+  }, [states]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");

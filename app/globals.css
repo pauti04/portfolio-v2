@@ -5,8 +5,8 @@
    NINE THOUSAND MILES — structure layer.
 
    NO COLOUR AND NO TYPEFACE IS DECIDED IN THIS FILE. Everything below is
-   written against the theme token contract only; the four files under
-   app/themes/ supply the values, selected by data-theme on <html>.
+   written against the theme token contract only; app/themes/ (Blueprint)
+   supplies the values.
 
    The contract, in full:
      --ground --ground-deep --panel
@@ -17,11 +17,22 @@
      --font-display --font-body --font-mono
 
    What lives here instead: the rail geometry the whole page hangs off, the
-   three resolved font stacks, and the structural component rules.
+   three resolved font stacks, the three-step section scale, one set of
+   interaction states shared by every link and button on the site, and the
+   structural component rules.
 
    --route is load-bearing, not decorative: it is the route line, the distance
    markers and the live indicator, and nothing else. --fail is a state, always
    accompanied by a glyph so colour is never the sole carrier of meaning.
+
+   --proj is the one exception to the contract, and it is not a theme token:
+   components/journey/ProjectStop.tsx publishes it inline on each project
+   root from lib/projectColors.ts. Inside a project block the live dot, the
+   running state and the run control's hover/focus read
+   `var(--proj, var(--route))`; outside one the fallback is the route blue, so
+   the Opening chip and the "run all" control are unchanged. The .proj-*
+   utilities at the end of the components layer are the only other readers.
+   Placements are fixed and documented in app/themes/a.css (PROJECT ACCENTS).
 
    Legacy token names (--stage, --paper, --line, --accent-*) alias onto the
    contract so the check bodies and /writing keep rendering. They resolve to
@@ -52,6 +63,20 @@
   --accent-violet: var(--ink-soft);
   --accent-cyan: var(--ink-soft);
   --accent-teal: var(--ink-soft);
+}
+
+/* Chrome geometry — not theme-owned, same everywhere. (The fixed nav's
+   height, --nav-h, is published on <html> by app/layout.tsx, and SiteNav
+   leaves a spacer of that height on every route but "/" — inner pages do
+   not pad for it.) */
+:root {
+  /* The vertical scale. Three steps, nothing in between:
+       1 — a block inside a section        (heading → body group)
+       2 — a section opening               (eyebrow / title after a rule)
+       3 — a chapter or major section      (the big breaths on the route)   */
+  --sect-gap-1: clamp(3rem, 5vw, 4rem);
+  --sect-gap-2: clamp(5rem, 9vw, 7rem);
+  --sect-gap-3: clamp(6rem, 12vw, 9rem);
 }
 
 @media (min-width: 640px) {
@@ -116,10 +141,12 @@ body {
   color: var(--ground-deep);
 }
 
+/* One focus ring for everything that can take focus: 2px of --route, 2px
+   off the box. No border-radius set here — a pill button keeps its pill and
+   an inline link gets its own 2px softening from .quiet-link / .cv-link. */
 :focus-visible {
   outline: 2px solid var(--route);
   outline-offset: 2px;
-  border-radius: 2px;
 }
 
 /* ---------------------------------------------------------------------------
@@ -395,9 +422,10 @@ body {
     flex: none;
   }
   /* The live indicator: the accent, and the only thing on the page that
-     pulses. It appears the moment a runner reports mode "live". */
+     pulses. It appears the moment a runner reports mode "live". Inside a
+     project block it takes that project's accent; elsewhere, the route. */
   .provenance[data-mode="live"]::before {
-    background: var(--route);
+    background: var(--proj, var(--route));
     animation: route-pulse 2.4s ease-in-out infinite;
   }
   .provenance[data-mode="recorded"]::before,
@@ -425,7 +453,7 @@ body {
     content: "✓";
   }
   .status-running {
-    color: var(--route);
+    color: var(--proj, var(--route));
   }
   .status-running::before {
     content: "→";
@@ -443,42 +471,98 @@ body {
     content: "○";
   }
 
-  /* -- controls ---------------------------------------------------------- */
+  /* -- interaction states ------------------------------------------------ */
+  /* ONE set, site-wide. A link is a hairline underline that firms up; a
+     button is a hairline pill that firms up, fills when pressed, and rings
+     in --route when focused from the keyboard. Nothing else is invented
+     per page. */
 
+  /* The quiet link. Rest: ink on a --rule hairline. Hover/focus: the
+     hairline steps up to --ink-soft and the text to --ink (the hover half
+     lives unlayered below, so it also wins over `text-muted`). */
+  .quiet-link {
+    color: var(--ink);
+    border-radius: 2px; /* softens the focus ring only; inline, no box */
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 0.28em;
+    transition:
+      text-decoration-color 180ms ease,
+      color 180ms ease;
+  }
+
+  /* The quiet button — and the run buttons, which are the same control.
+     Works on <button> and on <a>: a "start with the work" cue is a link
+     wearing this. */
+  .btn-quiet,
   .run-control {
     display: inline-flex;
     align-items: center;
     gap: 0.6em;
+    appearance: none;
     border: 1px solid var(--rule);
     border-radius: 999px;
     padding: 0.4em 0.95em;
     font-family: var(--ui-mono);
     font-size: 0.75rem;
+    line-height: 1.4;
     letter-spacing: 0.06em;
     color: var(--ink-soft);
     background: transparent;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
     transition:
       border-color 180ms ease,
-      color 180ms ease;
+      color 180ms ease,
+      background-color 180ms ease;
   }
+  .btn-quiet:hover:not(:disabled),
   .run-control:hover:not(:disabled) {
-    border-color: var(--route);
+    border-color: var(--ink-soft);
     color: var(--ink);
   }
+  /* The run variant alone hints at what it is about to do: the running
+     state's colour, and this is the control that produces it. Inside a
+     project block that is the project accent; elsewhere, the route. */
+  .run-control:hover:not(:disabled) {
+    border-color: var(--proj, var(--route));
+  }
+  /* Pressed: the pill fills to --panel and the edge goes to full ink. */
+  .btn-quiet:active:not(:disabled),
+  .run-control:active:not(:disabled) {
+    background: var(--panel);
+    border-color: var(--ink);
+    color: var(--ink);
+    transition-duration: 40ms;
+  }
+  .btn-quiet:disabled,
   .run-control:disabled {
     color: var(--muted);
+    border-color: var(--rule-soft);
     cursor: default;
   }
-
-  .quiet-link {
-    color: var(--ink);
-    text-decoration: underline;
-    text-decoration-color: var(--rule);
-    text-underline-offset: 0.28em;
-    transition: text-decoration-color 180ms ease;
+  .btn-quiet:focus-visible {
+    outline: 2px solid var(--route);
+    outline-offset: 2px;
   }
-  .quiet-link:hover {
-    text-decoration-color: var(--route);
+  .run-control:focus-visible {
+    outline: 2px solid var(--proj, var(--route));
+    outline-offset: 2px;
+  }
+
+  /* -- section scale ----------------------------------------------------- */
+  /* The three steps as padding-top utilities. For another axis use the
+     token directly: `mt-[var(--sect-gap-1)]`, `pb-[var(--sect-gap-2)]`. */
+  .sect-gap-1 {
+    padding-top: var(--sect-gap-1);
+  }
+  .sect-gap-2 {
+    padding-top: var(--sect-gap-2);
+  }
+  .sect-gap-3 {
+    padding-top: var(--sect-gap-3);
   }
 
   /* -- scroll entrance --------------------------------------------------- */
@@ -526,22 +610,6 @@ body {
     background: var(--panel);
     border: 1px solid var(--rule);
   }
-  .figure-frame {
-    position: relative;
-    border: 1px solid var(--rule);
-    border-radius: 12px;
-    background: var(--panel);
-  }
-  .figure-frame > .fig-label {
-    position: absolute;
-    top: -0.62em;
-    left: 0.875rem;
-    padding: 0 0.45em;
-    background: var(--ground);
-    font-size: 0.6875rem;
-    color: var(--muted);
-    line-height: 1.2;
-  }
   .rv-lift,
   .rv-slam {
     animation: enter-up 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -551,88 +619,81 @@ body {
     animation: enter-in 0.9s ease both;
     animation-delay: var(--rv-delay, 0s);
   }
+
+  /* -- project accent ---------------------------------------------------- */
+  /* Readers of --proj (set inline on each ProjectStop root). Every one falls
+     back to --route so a check rendered on its own is still drawn in the
+     house blue. Kept deliberately last in this layer: .proj-ink must outrank
+     .eyebrow, which is same-specificity and earlier. Not one of these paints
+     a surface — ink, a hairline mark, a form control's accent, and the tab. */
+
+  /* Text-level accent: eyebrow, headline values, figure prefix, live values. */
+  .proj-ink {
+    color: var(--proj, var(--route));
+  }
+  /* Hairline marks only — a threshold line, a 4px share bar. Never a card. */
+  .proj-fill {
+    background-color: var(--proj, var(--route));
+  }
+  /* The native accent of a range input, so the thumb matches its readout. */
+  .proj-accent {
+    accent-color: var(--proj, var(--route));
+  }
+  /* The 2px tab on a project root: solid for --proj-tab-len, then fading to
+     nothing over twice that again, so it reads as a tab, not a stripe. Drawn
+     with ::after — ::before is the rail node on .on-rail. It sits in the
+     gutter, halfway between the text and where the route line would be;
+     --proj-tab-top lets a padded root start the tab at its first line. */
+  .proj-tab {
+    position: relative;
+    --proj-tab-len: 3rem;
+  }
+  .proj-tab::after {
+    content: "";
+    position: absolute;
+    top: var(--proj-tab-top, 0);
+    bottom: 0;
+    left: calc(var(--rail-gap) * -0.5);
+    width: 2px;
+    border-radius: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      var(--proj, var(--route)) 0,
+      var(--proj, var(--route)) var(--proj-tab-len),
+      transparent calc(var(--proj-tab-len) * 3)
+    );
+  }
+  /* The companion variant: a shorter tab, same hue as the parent stop. */
+  .proj-tab-short {
+    --proj-tab-len: 1.5rem;
+  }
 }
 
 /* ---------------------------------------------------------------------------
-   TEMPORARY — the direction picker (components/ThemeSwitcher.tsx).
+   Link state — deliberately UNLAYERED.
 
-   Delete this whole block, that component, its mount in app/layout.tsx and
-   three of the four files in app/themes/ once a direction is chosen. It is
-   deliberately styled from the same tokens as everything else, so it looks
-   native to whichever theme is showing rather than sitting on top of it.
+   `quiet-link text-muted` is the commonest pairing on the site. `text-muted`
+   is emitted in @layer utilities, which outranks anything in @layer
+   components, so a hover rule up there could never lift the colour. Unlayered
+   author CSS outranks every layer, so this is the one place the state is
+   allowed to win over the resting colour: hairline → --ink-soft, text →
+   --ink, on hover and on keyboard focus alike.
 --------------------------------------------------------------------------- */
 
-.theme-switcher {
-  position: fixed;
-  right: max(0.75rem, env(safe-area-inset-right));
-  bottom: max(0.75rem, env(safe-area-inset-bottom));
-  z-index: 60;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.2rem;
-  max-width: calc(100vw - 1.5rem);
-  padding: 0.3rem 0.3rem 0.3rem 0.65rem;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: var(--panel);
-  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.6);
-  font-family: var(--ui-mono);
-  font-size: 0.75rem;
-  line-height: 1;
-}
-
-.theme-switcher__tag {
-  padding-right: 0.15rem;
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.theme-switcher__btn {
-  appearance: none;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--ink-soft);
-  padding: 0.35em 0.7em;
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    color 150ms ease,
-    border-color 150ms ease;
-}
-.theme-switcher__btn:hover {
+.quiet-link:hover,
+.quiet-link:focus-visible {
   color: var(--ink);
-  border-color: var(--rule);
-}
-.theme-switcher__btn[aria-pressed="true"] {
-  color: var(--ink);
-  border-color: var(--route);
+  text-decoration-color: var(--ink-soft);
 }
 
-/* Narrow phones: tighten it enough to stay on one line rather than wrap into
-   a two-row slab over the bottom of the page. */
-@media (max-width: 480px) {
-  .theme-switcher {
-    gap: 0.1rem;
-    padding: 0.25rem 0.25rem 0.25rem 0.5rem;
-    font-size: 0.6875rem;
-  }
-  .theme-switcher__tag {
-    font-size: 0.625rem;
-    letter-spacing: 0.1em;
-  }
-  .theme-switcher__btn {
-    padding: 0.35em 0.5em;
-  }
-}
-
-@media print {
-  .theme-switcher {
-    display: none !important;
+/* cv-link tap target — Lighthouse target-size wants ≥24×24 CSS px on screen.
+   Unlayered on purpose so it wins over the layered utility. Pads the hit
+   area vertically (no negative margin — adjacent stacked links must not
+   overlap, or the audit fails on spacing instead). Screen only: print is untouched. */
+@media screen {
+  .cv-link {
+    display: inline-block;
+    padding-block: 0.3rem;
   }
 }
