@@ -1,0 +1,229 @@
+{
+  "source": "rasoibot-clean/server/recipes.json — the shipped app's own index: 22 entries, of which two are duplicate dishes (Dal Tadka, Paneer Butter Masala) and one is not Indian (Pancakes).",
+  "selection": "12 of the file's 19 distinct Indian recipes, first occurrence per id. Kept from the previous six wherever the file has the dish: paneer butter masala, tadka dal (file: Dal Tadka), chole (file's name for the old 'chana masala'), bhindi masala (file's okra dish, replacing 'bhindi do pyaza'), aloo gobi (the file has no aloo pyaaz). Dropped palak paneer — the file has no spinach dish. Added masoor dal, sambar, butter chicken, rajma masala, cucumber raita, kadhi pakora, gobi manchurian. The four rice dishes (idli, chicken biryani, poha, vegetable pulao) were not picked so that 'rice' alone still misses honestly. Names are the file's names lowercased minus parenthetical descriptors; time = prep_time_mins + cook_time_mins from the file; every needs item and match key is a substring of one of that recipe's ingredient names in the file ('lentils' stands for dal — the file writes 'split yellow lentils (toor dal)', 'Red Lentil Curry', 'Lentil Stew').",
+  "scoring": "score = |pantry ∩ match| / |match|; the highest score wins; a tie keeps the earlier entry in index order (strict > comparison, first-seen best is never replaced by an equal score).",
+  "ingredients": [
+    "onion",
+    "tomato",
+    "potato",
+    "cauliflower",
+    "okra",
+    "cucumber",
+    "paneer",
+    "chicken",
+    "yogurt",
+    "besan",
+    "chickpeas",
+    "kidney beans",
+    "lentils",
+    "rice",
+    "ginger",
+    "garlic",
+    "tamarind"
+  ],
+  "index": [
+    {
+      "id": "paneer-butter-masala",
+      "name": "paneer butter masala",
+      "match": [
+        "paneer",
+        "tomato"
+      ],
+      "needs": [
+        "cream",
+        "garam masala",
+        "kasuri methi"
+      ],
+      "time": "40 min"
+    },
+    {
+      "id": "aloo-gobi",
+      "name": "aloo gobi",
+      "match": [
+        "potato",
+        "cauliflower"
+      ],
+      "needs": [
+        "turmeric",
+        "garam masala",
+        "cumin seeds"
+      ],
+      "time": "40 min"
+    },
+    {
+      "id": "chole",
+      "name": "chole",
+      "match": [
+        "chickpeas",
+        "onion"
+      ],
+      "needs": [
+        "chole masala",
+        "ginger-garlic paste",
+        "cumin seeds"
+      ],
+      "time": "55 min"
+    },
+    {
+      "id": "bhindi-masala",
+      "name": "bhindi masala",
+      "match": [
+        "okra"
+      ],
+      "needs": [
+        "turmeric",
+        "coriander powder"
+      ],
+      "time": "35 min"
+    },
+    {
+      "id": "dal-tadka",
+      "name": "tadka dal",
+      "match": [
+        "lentils",
+        "garlic"
+      ],
+      "needs": [
+        "ghee",
+        "cumin seeds",
+        "cilantro"
+      ],
+      "time": "40 min"
+    },
+    {
+      "id": "masoor-dal",
+      "name": "masoor dal",
+      "match": [
+        "lentils",
+        "ginger"
+      ],
+      "needs": [
+        "turmeric",
+        "chili powder",
+        "tomato"
+      ],
+      "time": "25 min"
+    },
+    {
+      "id": "sambar",
+      "name": "sambar",
+      "match": [
+        "lentils",
+        "tamarind"
+      ],
+      "needs": [
+        "sambar powder",
+        "curry leaves",
+        "mustard seeds"
+      ],
+      "time": "50 min"
+    },
+    {
+      "id": "butter-chicken",
+      "name": "butter chicken",
+      "match": [
+        "chicken",
+        "tomato"
+      ],
+      "needs": [
+        "butter",
+        "cream",
+        "kasuri methi"
+      ],
+      "time": "55 min"
+    },
+    {
+      "id": "rajma",
+      "name": "rajma masala",
+      "match": [
+        "kidney beans",
+        "onion"
+      ],
+      "needs": [
+        "tomato puree",
+        "garam masala",
+        "ginger-garlic paste"
+      ],
+      "time": "55 min"
+    },
+    {
+      "id": "raita-cucumber",
+      "name": "cucumber raita",
+      "match": [
+        "yogurt",
+        "cucumber"
+      ],
+      "needs": [
+        "roasted cumin powder",
+        "mint"
+      ],
+      "time": "10 min"
+    },
+    {
+      "id": "kadhi-pakora",
+      "name": "kadhi pakora",
+      "match": [
+        "yogurt",
+        "besan"
+      ],
+      "needs": [
+        "turmeric",
+        "spices (cumin, mustard)"
+      ],
+      "time": "50 min"
+    },
+    {
+      "id": "gobi-manchurian",
+      "name": "gobi manchurian",
+      "match": [
+        "cauliflower",
+        "garlic"
+      ],
+      "needs": [
+        "cornflour",
+        "soy sauce",
+        "chili sauce"
+      ],
+      "time": "40 min"
+    }
+  ],
+  "cases": [
+    {
+      "pantry": [
+        "paneer",
+        "tomato"
+      ],
+      "expect": "paneer butter masala",
+      "why": "both keys present — score 1.00, unique best"
+    },
+    {
+      "pantry": [
+        "okra"
+      ],
+      "expect": "bhindi masala",
+      "why": "single-key recipe, score 1.00, unique best"
+    },
+    {
+      "pantry": [
+        "rice"
+      ],
+      "expect": null,
+      "why": "honest miss — no recipe in the index is keyed on rice"
+    },
+    {
+      "pantry": [
+        "chicken",
+        "tomato"
+      ],
+      "expect": "butter chicken",
+      "why": "score 1.00 beats paneer butter masala at 0.50 — tomato alone does not decide"
+    },
+    {
+      "pantry": [
+        "lentils"
+      ],
+      "expect": "tadka dal",
+      "why": "three dals tie at 0.50 (tadka dal, masoor dal, sambar); first in index order wins — deterministic"
+    }
+  ]
+}

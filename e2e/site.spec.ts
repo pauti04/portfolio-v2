@@ -18,13 +18,13 @@ import { test, expect } from "@playwright/test";
 
 /** Route order, including the companion stop that shares ChainCheck's core. */
 const STOP_IDS = [
-  "stop-rasoibot",
+  "stop-reflight",
   "stop-chaincheck",
   "stop-chaincheck-action",
-  "stop-costdna",
-  "stop-netpulse",
   "stop-bourse",
-  "stop-reflight",
+  "stop-netpulse",
+  "stop-costdna",
+  "stop-rasoibot",
 ] as const;
 
 const CHAPTERS = [

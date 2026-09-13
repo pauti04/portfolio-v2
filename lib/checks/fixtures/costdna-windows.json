@@ -1,0 +1,98 @@
+{
+  "note": "Two SYNTHETIC CloudTrail windows for CHK-06 CostDNA. Nothing here is a real bill: each window is a service graph with per-call costs, and the check generates events over it with a seeded mulberry32 PRNG, then walks each event from its leaf resource back to the owning team and asserts the attributed totals reconcile with the ledger. Consumed by components/checks/costdna.tsx (browser) and scripts/verify.mjs (build) — one source, two readers.",
+  "algorithm": "rnd = mulberry32(seed); for each of N events: edge = edges[floor(rnd()*edges.length)]; base = costPerCall[edge.to]*(0.7+rnd()*1.4); spike = rnd()<0.05 ? 4+rnd()*4 : 1; cost = base*spike; ledger += cost; team = rootOf(edge.from).team (follow parents[0] until layer 0); teamUsd[team] += cost. Assert |ledger − Σ teamUsd| < 1e-9, |Σ shares − 100| < 1e-6, and rootOf(edge.from).team === node(edge.from).team for every event. N = 20000.",
+  "windows": {
+    "ecommerce": {
+      "label": "ecommerce",
+      "blurb": "checkout, recommendations and ingest on one account",
+      "seed": 1374535767,
+      "seedHex": "51edc057",
+      "teams": ["checkout", "recommend", "ingest"],
+      "nodes": [
+        { "id": "checkout", "label": "checkout-api", "team": "checkout", "layer": 0 },
+        { "id": "recommend", "label": "recommend-fn", "team": "recommend", "layer": 0 },
+        { "id": "ingest", "label": "ingest-fn", "team": "ingest", "layer": 0 },
+        { "id": "stripe", "label": "stripe-fn", "team": "checkout", "layer": 1 },
+        { "id": "dynamo", "label": "dynamodb", "team": "checkout", "layer": 1 },
+        { "id": "sagemaker", "label": "sagemaker", "team": "recommend", "layer": 1 },
+        { "id": "kinesis", "label": "kinesis", "team": "ingest", "layer": 1 },
+        { "id": "sqs", "label": "sqs", "team": "checkout", "layer": 2 },
+        { "id": "s3", "label": "s3-features", "team": "recommend", "layer": 2 }
+      ],
+      "edges": [
+        { "from": "checkout", "to": "stripe" },
+        { "from": "checkout", "to": "dynamo" },
+        { "from": "stripe", "to": "sqs" },
+        { "from": "recommend", "to": "sagemaker" },
+        { "from": "recommend", "to": "s3" },
+        { "from": "sagemaker", "to": "s3" },
+        { "from": "ingest", "to": "kinesis" }
+      ],
+      "costPerCall": {
+        "checkout": 0.00002,
+        "recommend": 0.00002,
+        "ingest": 0.00002,
+        "stripe": 0.0006,
+        "dynamo": 0.0011,
+        "sagemaker": 0.0048,
+        "kinesis": 0.00022,
+        "sqs": 0.00008,
+        "s3": 0.00031
+      },
+      "dominantPath": {
+        "checkout": "checkout-api → dynamodb",
+        "recommend": "recommend-fn → sagemaker",
+        "ingest": "ingest-fn → kinesis"
+      },
+      "reference": {
+        "note": "from the repo's own synthetic-window runs",
+        "rows": [
+          { "team": "recommend", "share": "≈70%", "pct": 70 },
+          { "team": "checkout", "share": "≈25%", "pct": 25 },
+          { "team": "ingest", "share": "≈5%", "pct": 5 }
+        ]
+      }
+    },
+    "data-platform": {
+      "label": "data-platform",
+      "blurb": "an etl, analytics and ml-training account sharing one lake",
+      "seed": 3665452007,
+      "seedHex": "da7a5be7",
+      "teams": ["etl", "analytics", "ml-training"],
+      "nodes": [
+        { "id": "airflow", "label": "airflow", "team": "etl", "layer": 0 },
+        { "id": "dashboards", "label": "bi-dashboards", "team": "analytics", "layer": 0 },
+        { "id": "trainer", "label": "train-job", "team": "ml-training", "layer": 0 },
+        { "id": "glue", "label": "glue-jobs", "team": "etl", "layer": 1 },
+        { "id": "redshift", "label": "redshift", "team": "analytics", "layer": 1 },
+        { "id": "athena", "label": "athena", "team": "analytics", "layer": 1 },
+        { "id": "emr", "label": "emr-cluster", "team": "ml-training", "layer": 1 },
+        { "id": "s3", "label": "s3-lake", "team": "etl", "layer": 2 }
+      ],
+      "edges": [
+        { "from": "airflow", "to": "glue" },
+        { "from": "glue", "to": "s3" },
+        { "from": "dashboards", "to": "redshift" },
+        { "from": "dashboards", "to": "athena" },
+        { "from": "athena", "to": "s3" },
+        { "from": "trainer", "to": "emr" },
+        { "from": "emr", "to": "s3" }
+      ],
+      "costPerCall": {
+        "airflow": 0.00002,
+        "dashboards": 0.00002,
+        "trainer": 0.00002,
+        "glue": 0.0032,
+        "redshift": 0.0019,
+        "athena": 0.0007,
+        "emr": 0.0041,
+        "s3": 0.00031
+      },
+      "dominantPath": {
+        "etl": "airflow → glue-jobs",
+        "analytics": "bi-dashboards → redshift",
+        "ml-training": "train-job → emr-cluster"
+      }
+    }
+  }
+}

@@ -8,11 +8,19 @@
 // mode:"recorded" with their recorded evidence.
 // ----------------------------------------------------------------------------
 
-import { writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// Shared fixtures — the SAME JSON files the browser checks import, so the
+// build-verified figures and the in-tab figures come from one source each.
+const fixture = (name) =>
+  JSON.parse(readFileSync(join(ROOT, "lib", "checks", "fixtures", name), "utf8"));
+const TRUTHFULQA = fixture("chaincheck-truthfulqa.json");
+const RASOI = fixture("rasoibot-index.json");
+const COSTDNA = fixture("costdna-windows.json");
 
 /** mulberry32 — tiny deterministic PRNG. */
 function rng(seed) {
@@ -28,7 +36,7 @@ function rng(seed) {
 const fmtCount = (n) =>
   n >= 1e6 ? `${(n / 1e6).toFixed(2)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(0)}k` : String(n);
 
-// --- CHK-02 · bourse: price-time-priority burst match ------------------------
+// --- CHK-04 · bourse: price-time-priority burst match ------------------------
 // Same matching semantics as the v1 in-browser engine (BourseDemo.tsx),
 // stripped of UI. Pass criteria are correctness invariants, not speed.
 function bourse() {
@@ -85,9 +93,14 @@ function bourse() {
   };
 }
 
-// --- CHK-05 · chaincheck: ensemble scores a known hallucination --------------
+// --- CHK-02 · chaincheck: ensemble scores a known hallucination --------------
 // Fixture is v1's "pr #142" preset: the claim says rate limiting was added;
 // the diff shows it wasn't. Detector scores are the recorded ensemble outputs.
+// Second assertion: six TruthfulQA samples from a recorded run of the LLM judge
+// ALONE (lib/checks/fixtures/chaincheck-truthfulqa.json — method
+// truthfulqa/judge, n=500, F1 0.70; a different benchmark from the HaluEval-QA
+// headline). For every sample the judge's recorded score, thresholded at 0.5,
+// must agree with the dataset label. Nothing here feeds the ensemble vote.
 function chaincheck() {
   const detectors = [
     { id: "nli entailment", score: 0.94, verdict: "contradicts" },
@@ -99,20 +112,30 @@ function chaincheck() {
   const flagged = detectors.filter((d) => d.score >= 0.8).length;
   const isHallucination = flagged >= 4; // ensemble vote, same rule as the demo core
   const mean = detectors.reduce((s, d) => s + d.score, 0) / detectors.length;
+
+  const samples = TRUTHFULQA.samples;
+  const agree = samples.filter((s) => (s.score >= 0.5) === (s.ground_truth === "yes")).length;
+  const judgeOk =
+    samples.length === 6 &&
+    agree === samples.length &&
+    TRUTHFULQA.run.method === "truthfulqa/judge" &&
+    TRUTHFULQA.run.n === 500;
+
   return {
-    pass: isHallucination === true,
+    pass: isHallucination === true && judgeOk,
     mode: "build",
     metrics: [
       { label: "claim", value: '"adds rate limiting to /v2/predict"' },
       { label: "detectors flagging", value: `${flagged}/5` },
       { label: "ensemble score", value: mean.toFixed(2) },
       { label: "verdict", value: "hallucination" },
+      { label: "TruthfulQA samples · judge agrees with label", value: `${agree}/${samples.length}` },
     ],
-    summary: `Known hallucinated claim classified correctly: ${flagged}/5 detectors flagged it, ensemble score ${mean.toFixed(2)}.`,
+    summary: `Known hallucinated claim classified correctly: ${flagged}/5 detectors flagged it, ensemble score ${mean.toFixed(2)}. Judge alone · TruthfulQA recorded run n=${TRUTHFULQA.run.n} · F1 ${TRUTHFULQA.run.f1.toFixed(2)}: ${agree}/${samples.length} samples agree with their label.`,
   };
 }
 
-// --- CHK-06 · chaincheck-action: threshold gate ------------------------------
+// --- CHK-03 · chaincheck-action: threshold gate ------------------------------
 // Gate must block the bad PR and pass the good ones. Scores are the recorded
 // per-claim ensemble outputs from the v1 fixtures.
 function chaincheckAction() {
@@ -139,54 +162,84 @@ function chaincheckAction() {
   };
 }
 
-// --- CHK-04 · costdna: attribution must reconcile ----------------------------
-// Synthetic CloudTrail window over the v1 demo's service graph. Every event's
-// cost attributes to the root team of its caller; the sum must equal the
-// ledger total to within a nano-dollar.
-function costdna() {
-  const rand = rng(0xc057);
-  const COST = { stripe: 0.0006, dynamo: 0.0011, sagemaker: 0.0048, kinesis: 0.00022, sqs: 0.00008, s3: 0.00031 };
-  const EDGES = [
-    { root: "checkout", to: "stripe" }, { root: "checkout", to: "dynamo" },
-    { root: "checkout", to: "sqs" }, { root: "recommend", to: "sagemaker" },
-    { root: "recommend", to: "s3" }, { root: "ingest", to: "kinesis" },
-  ];
-  const N = 20_000;
-  let total = 0;
-  const byTeam = { checkout: 0, recommend: 0, ingest: 0 };
-  for (let i = 0; i < N; i++) {
-    const e = EDGES[Math.floor(rand() * EDGES.length)];
-    const spike = rand() < 0.06 ? 4 + rand() * 4 : 1;
-    const cost = COST[e.to] * (0.7 + rand() * 1.4) * spike;
-    total += cost;
-    byTeam[e.root] += cost;
+// --- CHK-06 · costdna: attribution must reconcile ----------------------------
+// Two synthetic CloudTrail windows from lib/checks/fixtures/costdna-windows.json,
+// generated with the same seeded PRNG, edge/cost/spike rules and leaf-to-root
+// walk as the browser check (components/checks/costdna.tsx), so the build
+// figure for a window is the figure the visitor recomputes. Every event's cost
+// attributes to the root team of its caller; per window the sum must equal the
+// ledger total to within a nano-dollar, shares must sum to 100%, and every
+// walk must land on the graph's own team label for the caller.
+function reconcileWindow(spec) {
+  const nodeMap = new Map(spec.nodes.map((n) => [n.id, n]));
+  const parents = new Map();
+  for (const e of spec.edges) {
+    if (!parents.has(e.to)) parents.set(e.to, []);
+    parents.get(e.to).push(e.from);
   }
-  const attributed = byTeam.checkout + byTeam.recommend + byTeam.ingest;
-  const pass = Math.abs(attributed - total) < 1e-9;
+  const rootOf = (id) => {
+    let cur = nodeMap.get(id);
+    let guard = 0;
+    while (cur.layer !== 0 && guard++ < 8) {
+      const ps = parents.get(cur.id);
+      if (!ps || ps.length === 0) break;
+      cur = nodeMap.get(ps[0]);
+    }
+    return cur;
+  };
+  const rand = rng(spec.seed);
+  const N = 20_000;
+  let ledger = 0;
+  const byTeam = Object.fromEntries(spec.teams.map((t) => [t, 0]));
+  let walkConsistent = true;
+  for (let i = 0; i < N; i++) {
+    const edge = spec.edges[Math.floor(rand() * spec.edges.length)];
+    const base = spec.costPerCall[edge.to] * (0.7 + rand() * 1.4);
+    const spike = rand() < 0.05 ? 4 + rand() * 4 : 1;
+    const cost = base * spike;
+    ledger += cost;
+    const root = rootOf(edge.from);
+    byTeam[root.team] += cost;
+    if (root.team !== nodeMap.get(edge.from).team) walkConsistent = false;
+  }
+  const attributed = spec.teams.reduce((s, t) => s + byTeam[t], 0);
+  const shareSum = spec.teams.reduce((s, t) => s + (byTeam[t] / ledger) * 100, 0);
+  const pass =
+    Math.abs(attributed - ledger) < 1e-9 && Math.abs(shareSum - 100) < 1e-6 && walkConsistent;
+  return { N, ledger, attributed, pass };
+}
+
+function costdna() {
+  const ids = Object.keys(COSTDNA.windows);
+  const runs = ids.map((id) => ({ id, ...reconcileWindow(COSTDNA.windows[id]) }));
+  const reconciled = runs.filter((r) => r.pass).length;
+  const pass = runs.length === 2 && reconciled === runs.length;
+  const [first, ...rest] = runs;
   return {
     pass,
     mode: "build",
     metrics: [
-      { label: "events", value: fmtCount(N) },
-      { label: "ledger total", value: `$${total.toFixed(2)}` },
-      { label: "attributed", value: `$${attributed.toFixed(2)}` },
-      { label: "unexplained", value: `$${Math.abs(total - attributed).toFixed(2)}` },
+      { label: "windows reconciled", value: `${reconciled}/${runs.length}` },
+      { label: "events", value: fmtCount(first.N) },
+      { label: "ledger total", value: `$${first.ledger.toFixed(2)}` },
+      { label: "attributed", value: `$${first.attributed.toFixed(2)}` },
+      { label: "unexplained", value: `$${Math.abs(first.ledger - first.attributed).toFixed(2)}` },
+      ...rest.flatMap((r) => [
+        { label: `${r.id} ledger total`, value: `$${r.ledger.toFixed(2)}` },
+        { label: `${r.id} attributed`, value: `$${r.attributed.toFixed(2)}` },
+        { label: `${r.id} unexplained`, value: `$${Math.abs(r.ledger - r.attributed).toFixed(2)}` },
+      ]),
     ],
-    summary: `${fmtCount(N)} synthetic CloudTrail events attributed to 3 teams; totals reconcile to the cent.`,
+    summary: `${fmtCount(first.N)} synthetic CloudTrail events per window attributed to 3 teams; ${reconciled}/${runs.length} windows (${ids.join(", ")}) reconcile to the cent.`,
   };
 }
 
 // --- CHK-07 · rasoibot: the lookup looks things up ---------------------------
-// Same set-intersection scoring as the shipped app, over the same index.
+// Same set-intersection scoring as the shipped app, over the curated index in
+// lib/checks/fixtures/rasoibot-index.json (12 recipes lifted from the app's
+// recipes.json). Ties keep the earlier entry — strict `>`, as in the browser.
 function rasoibot() {
-  const RECIPES = [
-    { match: ["paneer", "tomato"], name: "Paneer Butter Masala" },
-    { match: ["potato", "onion"], name: "Aloo Pyaaz Sabzi" },
-    { match: ["chickpeas", "onion"], name: "Chana Masala" },
-    { match: ["spinach", "paneer"], name: "Palak Paneer" },
-    { match: ["okra"], name: "Bhindi Do Pyaza" },
-    { match: ["lentils"], name: "Tadka Dal" },
-  ];
+  const RECIPES = RASOI.index;
   const find = (picked) => {
     let best = null;
     for (const { match, name } of RECIPES) {
@@ -195,22 +248,20 @@ function rasoibot() {
     }
     return best?.name ?? null;
   };
-  const cases = [
-    { pantry: ["paneer", "tomato"], expect: "Paneer Butter Masala" },
-    { pantry: ["okra"], expect: "Bhindi Do Pyaza" },
-    { pantry: ["rice"], expect: null }, // honest miss: nothing locks in cleanly
-  ];
+  const cases = RASOI.cases;
   const results = cases.map((c) => find(c.pantry) === c.expect);
-  const pass = results.every(Boolean);
+  const hits = cases.filter((c) => c.expect !== null).length;
+  const misses = cases.length - hits;
+  const pass = results.every(Boolean) && cases.length === 5 && misses === 1 && RECIPES.length === 12;
   return {
     pass,
     mode: "build",
     metrics: [
-      { label: "recipes indexed", value: "6" },
+      { label: "recipes indexed", value: String(RECIPES.length) },
       { label: "lookups correct", value: `${results.filter(Boolean).length}/${cases.length}` },
       { label: "API calls", value: "0" },
     ],
-    summary: "Pantry lookup returned the right recipe for 2 pantries and honestly declined a third. No API calls.",
+    summary: `Pantry lookup returned the right recipe for ${hits} pantries and honestly declined ${misses === 1 ? "a fifth" : String(misses)}. No API calls.`,
   };
 }
 
@@ -249,7 +300,7 @@ function reflight() {
   };
 }
 
-// --- CHK-03 · netpulse: cannot open a WebSocket under node at build ----------
+// --- CHK-05 · netpulse: cannot open a WebSocket under node at build ----------
 // Records mode:"recorded" with the documented session evidence.
 function netpulse() {
   return {
@@ -269,11 +320,11 @@ function netpulse() {
 
 const results = {
   reflight: reflight(),
+  chaincheck: chaincheck(),
+  "chaincheck-action": chaincheckAction(),
   bourse: bourse(),
   netpulse: netpulse(),
   costdna: costdna(),
-  chaincheck: chaincheck(),
-  "chaincheck-action": chaincheckAction(),
   rasoibot: rasoibot(),
 };
 
@@ -288,6 +339,10 @@ for (const [slug, r] of Object.entries(results)) {
 }
 if (failing.length > 0) {
   console.error(`\n${failing.length} check(s) failing — refusing to bake a red build.`);
+  process.exit(1);
+}
+if (Object.keys(results).length !== 7) {
+  console.error(`\nexpected exactly 7 checks, found ${Object.keys(results).length}.`);
   process.exit(1);
 }
 console.log(`\n7/7 checks pass · lib/verification.json written · ${out.builtAt}`);

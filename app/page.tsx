@@ -244,6 +244,13 @@ function Work() {
         <ReflightCheck />
       </ProjectStop>
 
+      <ProjectStop slug="chaincheck" onRail={false}>
+        <ChainCheckCheck />
+      </ProjectStop>
+      <ProjectStop slug="chaincheck-action" variant="companion">
+        <ChainCheckActionCheck />
+      </ProjectStop>
+
       <ProjectStop slug="bourse" onRail={false}>
         <BourseCheck />
       </ProjectStop>
@@ -254,13 +261,6 @@ function Work() {
 
       <ProjectStop slug="costdna" onRail={false}>
         <CostDNACheck />
-      </ProjectStop>
-
-      <ProjectStop slug="chaincheck" onRail={false}>
-        <ChainCheckCheck />
-      </ProjectStop>
-      <ProjectStop slug="chaincheck-action" variant="companion">
-        <ChainCheckActionCheck />
       </ProjectStop>
 
       <ProjectStop slug="rasoibot" onRail={false}>

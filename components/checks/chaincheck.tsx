@@ -1,17 +1,23 @@
 "use client";
 
 // ----------------------------------------------------------------------------
-// CHK-05 ChainCheck. Ensembles the five detectors over two fixed fixtures —
+// CHK-02 ChainCheck. Ensembles the five detectors over two fixed fixtures —
 // the known hallucinated claim (pr #142) and a supported one (pr #143) — and
 // asserts both verdicts land correctly. Detector scores are the shipped
 // detector's recorded outputs (no live model calls in a browser tab); the
 // ensemble vote is computed here.
 // The figure carries a third fixture (a partially-wrong LLM answer) for
 // inspection; the check itself always scores the same two.
+// A second preset group shows six TruthfulQA samples from a recorded run of
+// the LLM judge ALONE (method truthfulqa/judge, n=500, F1 0.70) — a different
+// benchmark from the HaluEval-QA headline, and only one of the five
+// detectors. Its samples never feed the ensemble vote; they are shown so the
+// visitor can see a lone judge's score against a dataset label.
 // ----------------------------------------------------------------------------
 
 import { useState } from "react";
 import type { CheckRunner } from "@/lib/checks/types";
+import truthfulqa from "@/lib/checks/fixtures/chaincheck-truthfulqa.json";
 
 type Expect = "halluc" | "ok" | "partial";
 
@@ -147,37 +153,115 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 //
 // Accent discipline: the detector scores are recorded, so they are ink. The
 // one thing this tab actually computes is the ensemble verdict, and that is
-// the only place the route colour appears.
+// the only place the route colour appears. The judge-only samples compute
+// nothing — every figure on them is a recorded value — so they stay ink.
 // ---------------------------------------------------------------------------
 
 const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
 
+type JudgeSample = (typeof truthfulqa.samples)[number];
+const JUDGE_SAMPLES: JudgeSample[] = truthfulqa.samples;
+const JUDGE_RUN = truthfulqa.run;
+// The label travels with the samples everywhere they appear: a different
+// benchmark from the HaluEval-QA headline, one detector, its own recorded F1.
+const JUDGE_GROUP_LABEL = `the judge alone · TruthfulQA · recorded run n=${JUDGE_RUN.n} · F1 ${JUDGE_RUN.f1.toFixed(2)}`;
+
+// A recorded row (the judge) or a row with nothing on file for this sample.
+type JudgeRow =
+  | { name: string; recorded: true; label: string; score: number; bad: boolean }
+  | { name: string; recorded: false };
+
+function judgeOnly(sample: JudgeSample) {
+  const flagged = sample.predicted === "yes";
+  const labelledHalluc = sample.ground_truth === "yes";
+  const rows: JudgeRow[] = DETECTORS.map((d) =>
+    d.id === "judge"
+      ? {
+          name: d.name,
+          recorded: true,
+          label: flagged ? "flags" : "clears",
+          score: sample.score,
+          bad: flagged,
+        }
+      : { name: d.name, recorded: false },
+  );
+  return {
+    rows,
+    verdict: flagged ? "hallucination" : "truthful",
+    score: sample.score,
+    label: labelledHalluc ? "hallucinated" : "truthful",
+    matched: flagged === labelledHalluc,
+  };
+}
+
+type Active = { group: "ensemble"; i: number } | { group: "judge"; i: number };
+
+const CHIP = (on: boolean) =>
+  `rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
+    on
+      ? "border-ink-soft bg-panel text-ink"
+      : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
+  }`;
+
 export default function ChainCheckCheck() {
-  const [active, setActive] = useState(0);
-  const preset = PRESETS[active];
-  const result = ensemble(preset.expect);
+  const [active, setActive] = useState<Active>({ group: "ensemble", i: 0 });
 
   return (
     <div className="mono p-4 sm:p-5">
       <p className={LABEL}>fixture</p>
       <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="fixture picker">
-        {PRESETS.map((p, i) => (
-          <button
-            key={p.label}
-            type="button"
-            aria-pressed={i === active}
-            onClick={() => setActive(i)}
-            className={`rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
-              i === active
-                ? "border-ink-soft bg-panel text-ink"
-                : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
+        {PRESETS.map((p, i) => {
+          const on = active.group === "ensemble" && i === active.i;
+          return (
+            <button
+              key={p.label}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setActive({ group: "ensemble", i })}
+              className={CHIP(on)}
+            >
+              {p.label}
+            </button>
+          );
+        })}
       </div>
 
+      <p className={`${LABEL} mt-4`}>{JUDGE_GROUP_LABEL}</p>
+      <div
+        className="mt-3 flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="TruthfulQA sample picker — the LLM judge alone, recorded run"
+      >
+        {JUDGE_SAMPLES.map((s, i) => {
+          const on = active.group === "judge" && i === active.i;
+          return (
+            <button
+              key={s.question}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setActive({ group: "judge", i })}
+              className={CHIP(on)}
+            >
+              {s.category.toLowerCase()} {s.ground_truth === "yes" ? "✗" : "✓"}
+            </button>
+          );
+        })}
+      </div>
+
+      {active.group === "ensemble" ? (
+        <EnsembleBody preset={PRESETS[active.i]} />
+      ) : (
+        <JudgeBody sample={JUDGE_SAMPLES[active.i]} />
+      )}
+    </div>
+  );
+}
+
+// The original figure: five recorded detector lines, ensemble vote computed here.
+function EnsembleBody({ preset }: { preset: Preset }) {
+  const result = ensemble(preset.expect);
+  return (
+    <>
       <div className="mt-5 border-t border-rule pt-4">
         <p className={LABEL}>claim</p>
         <p className="mt-2.5 max-w-[68ch] text-[0.8125rem] leading-relaxed text-ink">
@@ -239,6 +323,84 @@ export default function ChainCheckCheck() {
         detector scores are the shipped detector&apos;s recorded outputs — no model calls from a
         browser tab. The vote itself runs here.
       </p>
-    </div>
+    </>
+  );
+}
+
+// One TruthfulQA sample: the judge's recorded score against the dataset label.
+// Four detector rows have nothing on file for this sample and say so.
+function JudgeBody({ sample }: { sample: JudgeSample }) {
+  const result = judgeOnly(sample);
+  return (
+    <>
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>claim</p>
+        <p className="mt-2.5 max-w-[68ch] text-[0.8125rem] leading-relaxed text-ink">
+          &quot;{sample.response}&quot;
+        </p>
+        <p className={`${LABEL} mt-4`}>checked against</p>
+        <pre className="mt-2.5 max-w-[72ch] border-l border-rule pl-3.5 text-[0.75rem] leading-relaxed break-words whitespace-pre-wrap text-muted">
+          {`question: ${sample.question}\nTruthfulQA label: ${result.label} · category: ${sample.category}`}
+        </pre>
+      </div>
+
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>one detector, recorded — the judge alone</p>
+        <div className="mt-3 space-y-2">
+          {result.rows.map((r) => (
+            <div
+              key={r.name}
+              className="flex flex-col gap-1 sm:grid sm:grid-cols-[1rem_8.5rem_minmax(3rem,1fr)_auto] sm:items-center sm:gap-x-3"
+            >
+              <div className="flex items-baseline gap-x-2 sm:contents">
+                <span
+                  aria-hidden="true"
+                  className={`text-[0.75rem] ${r.recorded && r.bad ? "text-fail" : "text-muted"}`}
+                >
+                  {r.recorded ? (r.bad ? "✗" : "✓") : "·"}
+                </span>
+                <span className={`text-[0.75rem] ${r.recorded ? "text-ink-soft" : "text-muted"}`}>
+                  {r.name}
+                </span>
+              </div>
+              <span aria-hidden="true" className="hidden h-1 rounded-full bg-rule sm:block">
+                {r.recorded && (
+                  <span
+                    className="block h-1 rounded-full bg-ink-soft"
+                    style={{ width: `${Math.max(3, r.score * 100)}%` }}
+                  />
+                )}
+              </span>
+              <span
+                className={`pl-[1.5rem] text-[0.75rem] sm:pl-0 sm:text-right ${
+                  r.recorded && r.bad ? "text-ink" : "text-muted"
+                }`}
+              >
+                {r.recorded ? `${r.label} ${r.score.toFixed(2)}` : "not recorded for this sample"}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 border-t border-rule pt-4">
+        <p className={LABEL}>judge-only verdict, recorded</p>
+        <p className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="text-[0.9375rem] text-ink">{result.verdict}</span>
+          <span className="text-[0.8125rem] text-ink-soft">{result.score.toFixed(2)}</span>
+          <span className="text-[0.75rem] text-muted">
+            {result.matched ? "matched" : "missed"} the TruthfulQA label ({result.label}) · 1 of 5
+            detectors · no ensemble vote
+          </span>
+        </p>
+      </div>
+
+      <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
+        {JUDGE_GROUP_LABEL} · P {JUDGE_RUN.precision.toFixed(2)} · R{" "}
+        {JUDGE_RUN.recall.toFixed(2)} — a lone judge is a
+        probabilistic net; the ensemble above is the product. Different benchmark from the
+        HaluEval-QA headline.
+      </p>
+    </>
   );
 }

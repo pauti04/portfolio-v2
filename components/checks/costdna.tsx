@@ -1,96 +1,78 @@
 "use client";
 
-// CHK-04 · CostDNA — attribution over a synthetic CloudTrail window,
+// CHK-06 · CostDNA — attribution over a synthetic CloudTrail window,
 // generated and reconciled in this tab. run() produces N events with a
-// seeded PRNG over the v1 service graph, walks each event from its leaf
+// seeded PRNG over the selected service graph, walks each event from its leaf
 // resource back to the owning team, and passes only when the attributed
 // totals reconcile with the ledger (shares sum to 100% ± ε).
+//
+// Two windows live in lib/checks/fixtures/costdna-windows.json — the same
+// file scripts/verify.mjs reconciles at build time, so the "verified at
+// build" figures and the numbers computed here come from one graph each.
+// The visitor picks a window; run() reconciles whichever is selected.
 
 import { useSyncExternalStore } from "react";
 import type { CheckResult, CheckRunner, LogLine } from "@/lib/checks/types";
+import windowsFile from "@/lib/checks/fixtures/costdna-windows.json";
+import verification from "@/lib/verification.json";
 
-/* ----------------------------------------------- service graph (from v1) */
+/* ------------------------------------------------- service graphs (fixture) */
 
-type NodeId =
-  | "checkout"
-  | "stripe"
-  | "dynamo"
-  | "sqs"
-  | "recommend"
-  | "sagemaker"
-  | "s3"
-  | "ingest"
-  | "kinesis";
-
-type Team = "checkout" | "recommend" | "ingest";
-
-type GraphNode = { id: NodeId; label: string; team: Team; layer: 0 | 1 | 2 };
-
-const NODES: GraphNode[] = [
-  { id: "checkout", label: "checkout-api", team: "checkout", layer: 0 },
-  { id: "recommend", label: "recommend-fn", team: "recommend", layer: 0 },
-  { id: "ingest", label: "ingest-fn", team: "ingest", layer: 0 },
-  { id: "stripe", label: "stripe-fn", team: "checkout", layer: 1 },
-  { id: "dynamo", label: "dynamodb", team: "checkout", layer: 1 },
-  { id: "sagemaker", label: "sagemaker", team: "recommend", layer: 1 },
-  { id: "kinesis", label: "kinesis", team: "ingest", layer: 1 },
-  { id: "sqs", label: "sqs", team: "checkout", layer: 2 },
-  { id: "s3", label: "s3-features", team: "recommend", layer: 2 },
-];
-
-const EDGES: { from: NodeId; to: NodeId }[] = [
-  { from: "checkout", to: "stripe" },
-  { from: "checkout", to: "dynamo" },
-  { from: "stripe", to: "sqs" },
-  { from: "recommend", to: "sagemaker" },
-  { from: "recommend", to: "s3" },
-  { from: "sagemaker", to: "s3" },
-  { from: "ingest", to: "kinesis" },
-];
-
-const COST_PER_CALL: Record<NodeId, number> = {
-  checkout: 0.00002,
-  recommend: 0.00002,
-  ingest: 0.00002,
-  stripe: 0.0006,
-  dynamo: 0.0011,
-  sagemaker: 0.0048,
-  kinesis: 0.00022,
-  sqs: 0.00008,
-  s3: 0.00031,
+type GraphNode = { id: string; label: string; team: string; layer: number };
+type Edge = { from: string; to: string };
+type WindowSpec = {
+  label: string;
+  blurb: string;
+  seed: number;
+  teams: string[];
+  nodes: GraphNode[];
+  edges: Edge[];
+  costPerCall: Record<string, number>;
+  dominantPath: Record<string, string>;
+  reference?: { note: string; rows: { team: string; share: string; pct: number }[] };
 };
 
-const NODE_MAP = new Map(NODES.map((n) => [n.id, n]));
+const WINDOWS = windowsFile.windows as unknown as Record<string, WindowSpec>;
+export type WindowId = keyof typeof windowsFile.windows;
+export const WINDOW_IDS = Object.keys(windowsFile.windows) as WindowId[];
 
-// reverse edges: child → callers, for the leaf-to-root walk
-const PARENTS = new Map<NodeId, NodeId[]>();
-for (const e of EDGES) {
-  if (!PARENTS.has(e.to)) PARENTS.set(e.to, []);
-  PARENTS.get(e.to)!.push(e.from);
+type Graph = {
+  id: WindowId;
+  spec: WindowSpec;
+  nodeMap: Map<string, GraphNode>;
+  // reverse edges: child → callers, for the leaf-to-root walk
+  parents: Map<string, string[]>;
+};
+
+function buildGraph(id: WindowId): Graph {
+  const spec = WINDOWS[id];
+  const nodeMap = new Map(spec.nodes.map((n) => [n.id, n]));
+  const parents = new Map<string, string[]>();
+  for (const e of spec.edges) {
+    if (!parents.has(e.to)) parents.set(e.to, []);
+    parents.get(e.to)!.push(e.from);
+  }
+  return { id, spec, nodeMap, parents };
 }
 
+const GRAPHS = Object.fromEntries(WINDOW_IDS.map((id) => [id, buildGraph(id)])) as Record<
+  WindowId,
+  Graph
+>;
+
 /** Walk from a node up the call graph until a layer-0 root is reached. */
-function rootOf(id: NodeId): GraphNode {
-  let cur = NODE_MAP.get(id)!;
+function rootOf(g: Graph, id: string): GraphNode {
+  let cur = g.nodeMap.get(id)!;
   let guard = 0;
   while (cur.layer !== 0 && guard++ < 8) {
-    const parents = PARENTS.get(cur.id);
+    const parents = g.parents.get(cur.id);
     if (!parents || parents.length === 0) break;
-    cur = NODE_MAP.get(parents[0])!;
+    cur = g.nodeMap.get(parents[0])!;
   }
   return cur;
 }
 
-const TEAMS: Team[] = ["checkout", "recommend", "ingest"];
-const DOMINANT_PATH: Record<Team, string> = {
-  checkout: "checkout-api → dynamodb",
-  recommend: "recommend-fn → sagemaker",
-  ingest: "ingest-fn → kinesis",
-};
-
 /* ------------------------------------------------------------------- PRNG */
-
-const SEED = 0x51edc057;
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -104,7 +86,7 @@ function mulberry32(seed: number): () => number {
 
 /* ------------------------------------------------------------------- store */
 
-type TeamRow = { team: Team; events: number; usd: number; sharePct: number };
+type TeamRow = { team: string; events: number; usd: number; sharePct: number };
 type CostView = {
   ran: boolean;
   events: number;
@@ -125,10 +107,13 @@ const IDLE_VIEW: CostView = {
   rows: [],
 };
 
-let viewState: CostView = IDLE_VIEW;
+// One view per window, so switching windows after a run keeps each result.
+let viewState: Record<WindowId, CostView> = Object.fromEntries(
+  WINDOW_IDS.map((id) => [id, IDLE_VIEW]),
+) as Record<WindowId, CostView>;
 const viewSubs = new Set<() => void>();
-const setView = (v: CostView) => {
-  viewState = v;
+const setView = (id: WindowId, v: CostView) => {
+  viewState = { ...viewState, [id]: v };
   viewSubs.forEach((f) => f());
 };
 const subscribeView = (f: () => void) => {
@@ -138,6 +123,22 @@ const subscribeView = (f: () => void) => {
   };
 };
 const getView = () => viewState;
+
+// The selected window lives outside React so run() — invoked by the
+// RunAllProvider, not by this component — reconciles what the visitor picked.
+let selectedWindow: WindowId = WINDOW_IDS[0];
+const selectSubs = new Set<() => void>();
+const setSelectedWindow = (id: WindowId) => {
+  selectedWindow = id;
+  selectSubs.forEach((f) => f());
+};
+const subscribeSelected = (f: () => void) => {
+  selectSubs.add(f);
+  return () => {
+    selectSubs.delete(f);
+  };
+};
+const getSelected = () => selectedWindow;
 
 /* ----------------------------------------------------------------- helpers */
 
@@ -158,19 +159,23 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
     if (signal?.aborted) throw new DOMException("check aborted", "AbortError");
   };
 
+  const windowId = getSelected();
+  const g = GRAPHS[windowId];
+  const { edges: EDGES, costPerCall: COST_PER_CALL, teams: TEAMS, seed: SEED } = g.spec;
+
   const total = lite ? 5_000 : 20_000;
   const CHUNK = 4_000;
   const rnd = mulberry32(SEED);
 
   log(
-    `synthetic CloudTrail window · ${fmtInt(total)} events · seeded PRNG (0x${SEED.toString(16)})`,
+    `synthetic CloudTrail window "${g.spec.label}" · ${fmtInt(total)} events · seeded PRNG (0x${SEED.toString(16)})`,
     "muted",
   );
   log("walking each event from its leaf resource back to the owning team", "muted");
 
   let ledgerUsd = 0;
-  const teamUsd: Record<Team, number> = { checkout: 0, recommend: 0, ingest: 0 };
-  const teamEvents: Record<Team, number> = { checkout: 0, recommend: 0, ingest: 0 };
+  const teamUsd: Record<string, number> = Object.fromEntries(TEAMS.map((t) => [t, 0]));
+  const teamEvents: Record<string, number> = Object.fromEntries(TEAMS.map((t) => [t, 0]));
   let walkConsistent = true;
   let generated = 0;
   let workMs = 0;
@@ -187,18 +192,18 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 
       ledgerUsd += cost;
 
-      const root = rootOf(edge.from);
+      const root = rootOf(g, edge.from);
       teamUsd[root.team] += cost;
       teamEvents[root.team] += 1;
       // the walked root must agree with the graph's own team labeling
-      if (root.team !== NODE_MAP.get(edge.from)!.team) walkConsistent = false;
+      if (root.team !== g.nodeMap.get(edge.from)!.team) walkConsistent = false;
     }
     workMs += performance.now() - c0;
     generated += n;
     await yieldToBrowser();
   }
 
-  const attributedUsd = teamUsd.checkout + teamUsd.recommend + teamUsd.ingest;
+  const attributedUsd = TEAMS.reduce((sum, t) => sum + teamUsd[t], 0);
   const unexplainedUsd = ledgerUsd - attributedUsd;
   const shares = TEAMS.map((t) => (teamUsd[t] / ledgerUsd) * 100);
   const shareSum = shares.reduce((a, b) => a + b, 0);
@@ -234,7 +239,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
     sharePct: shares[i],
   })).sort((a, b) => b.usd - a.usd);
 
-  setView({
+  setView(windowId, {
     ran: true,
     events: total,
     ledgerUsd,
@@ -248,14 +253,15 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
     pass,
     mode: "live",
     metrics: [
+      { label: "window", value: g.spec.label },
       { label: "attribution pass", value: `${fmtK(total)} events in ${workMs.toFixed(0)} ms` },
       { label: "ledger total", value: fmtUsd(ledgerUsd) },
       { label: "attributed", value: fmtUsd(attributedUsd) },
       { label: "unexplained", value: fmtUsd(Math.abs(unexplainedUsd)) },
     ],
     summary: pass
-      ? `${fmtInt(total)} synthetic CloudTrail events attributed to 3 teams in this tab; totals reconcile to the cent.`
-      : `Attribution over ${fmtInt(total)} events failed to reconcile — see the report lines.`,
+      ? `${fmtInt(total)} synthetic CloudTrail events (${g.spec.label} window) attributed to ${TEAMS.length} teams in this tab; totals reconcile to the cent.`
+      : `Attribution over ${fmtInt(total)} events (${g.spec.label} window) failed to reconcile — see the report lines.`,
   };
   return result;
 };
@@ -267,12 +273,58 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 // the share bars take the route colour — that switch is the only thing on the
 // figure that says "this number was just computed on your device".
 
-// Pre-run reference shares, from the repo's own synthetic-window runs.
-const REFERENCE_ROWS = [
-  { team: "recommend", share: "≈70%", pct: 70, driver: DOMINANT_PATH.recommend },
-  { team: "checkout", share: "≈25%", pct: 25, driver: DOMINANT_PATH.checkout },
-  { team: "ingest", share: "≈5%", pct: 5, driver: DOMINANT_PATH.ingest },
-];
+type VerificationFile = {
+  builtAt: string;
+  results: Record<string, { pass: boolean; metrics: { label: string; value: string }[] }>;
+};
+const BUILD = (verification as VerificationFile).results.costdna;
+
+/**
+ * Build-verified reconciliation for one window, read from verification.json.
+ * verify.mjs labels the ecommerce window's metrics plainly ("ledger total",
+ * "attributed", "unexplained") and prefixes any other window's with its id
+ * ("data-platform ledger total", …). Missing labels render as "—" rather than
+ * a made-up figure.
+ */
+function buildFigures(id: WindowId) {
+  const prefix = id === WINDOW_IDS[0] ? "" : `${id} `;
+  const pick = (label: string) =>
+    BUILD?.metrics.find((m) => m.label === `${prefix}${label}`)?.value ?? "—";
+  return {
+    ledger: pick("ledger total"),
+    attributed: pick("attributed"),
+    unexplained: pick("unexplained"),
+    known: BUILD?.metrics.some((m) => m.label === `${prefix}ledger total`) ?? false,
+  };
+}
+
+/**
+ * Pre-run reference shares. The ecommerce window carries the repo's own
+ * recorded shares; a window without a recorded run shows what the graph's
+ * per-call costs imply (every edge equiprobable, spikes team-neutral) and
+ * says so.
+ */
+function referenceRows(g: Graph) {
+  const { spec } = g;
+  if (spec.reference) {
+    return {
+      note: spec.reference.note,
+      rows: spec.reference.rows.map((r) => ({ ...r, driver: spec.dominantPath[r.team] })),
+    };
+  }
+  const perTeam: Record<string, number> = Object.fromEntries(spec.teams.map((t) => [t, 0]));
+  for (const e of spec.edges) perTeam[rootOf(g, e.from).team] += spec.costPerCall[e.to];
+  const sum = Object.values(perTeam).reduce((a, b) => a + b, 0);
+  return {
+    note: "expected from the graph's per-call costs — no recorded run for this window",
+    rows: spec.teams
+      .map((t) => {
+        const pct = (perTeam[t] / sum) * 100;
+        return { team: t, share: `≈${Math.round(pct)}%`, pct, driver: spec.dominantPath[t] };
+      })
+      .sort((a, b) => b.pct - a.pct),
+  };
+}
 
 const LABEL = "text-[0.6875rem] uppercase tracking-[0.18em] text-muted";
 
@@ -287,45 +339,109 @@ function ShareBar({ pct, live = false }: { pct: number; live?: boolean }) {
   );
 }
 
+function WindowPicker({ selected }: { selected: WindowId }) {
+  return (
+    <>
+      <p className={LABEL}>window</p>
+      <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label="synthetic window picker">
+        {WINDOW_IDS.map((id) => {
+          const on = id === selected;
+          return (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setSelectedWindow(id)}
+              className={`rounded-full border px-2.5 py-1 text-[0.6875rem] transition-colors ${
+                on
+                  ? "border-ink-soft bg-panel text-ink"
+                  : "border-rule text-muted hover:border-ink-soft hover:text-ink-soft"
+              }`}
+            >
+              {WINDOWS[id].label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-2 text-[0.6875rem] leading-relaxed text-muted">
+        {WINDOWS[selected].blurb} · {WINDOWS[selected].teams.length} teams ·{" "}
+        {WINDOWS[selected].nodes.length} resources · synthetic by design
+      </p>
+    </>
+  );
+}
+
+function BuildStrip() {
+  return (
+    <div className="mt-5 border-t border-rule pt-4">
+      <p className={LABEL}>verified at build, both windows</p>
+      <div className="mt-3 space-y-1.5">
+        {WINDOW_IDS.map((id) => {
+          const f = buildFigures(id);
+          return (
+            <p key={id} className="text-[0.6875rem] leading-relaxed text-muted">
+              <span className="text-ink-soft">{WINDOWS[id].label}</span> · ledger {f.ledger} ·
+              attributed {f.attributed} · unexplained {f.unexplained}
+              {f.known ? "" : " · not in this build's verification.json"}
+            </p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function CostDNACheck() {
-  const view = useSyncExternalStore(subscribeView, getView, getView);
+  const views = useSyncExternalStore(subscribeView, getView, getView);
+  const selected = useSyncExternalStore(subscribeSelected, getSelected, getSelected);
+  const g = GRAPHS[selected];
+  const view = views[selected];
   const reconciles = Math.abs(view.unexplainedUsd) < EPSILON_USD;
 
   if (!view.ran) {
+    const ref = referenceRows(g);
     return (
       <div className="mono p-4 sm:p-5">
-        <p className={LABEL}>reference shares</p>
-        <div className="mt-3 space-y-2.5">
-          {REFERENCE_ROWS.map((t) => (
-            <div
-              key={t.team}
-              className="flex flex-col gap-1 sm:grid sm:grid-cols-[6rem_3rem_7rem_minmax(0,1fr)] sm:items-center sm:gap-x-3"
-            >
-              <div className="flex items-baseline gap-x-3 sm:contents">
-                <span className="text-[0.75rem] text-ink-soft">{t.team}</span>
-                <span className="text-[0.75rem] text-ink">{t.share}</span>
+        <WindowPicker selected={selected} />
+
+        <div className="mt-5 border-t border-rule pt-4">
+          <p className={LABEL}>reference shares · {g.spec.label}</p>
+          <div className="mt-3 space-y-2.5">
+            {ref.rows.map((t) => (
+              <div
+                key={t.team}
+                className="flex flex-col gap-1 sm:grid sm:grid-cols-[6rem_3rem_7rem_minmax(0,1fr)] sm:items-center sm:gap-x-3"
+              >
+                <div className="flex items-baseline gap-x-3 sm:contents">
+                  <span className="text-[0.75rem] text-ink-soft">{t.team}</span>
+                  <span className="text-[0.75rem] text-ink">{t.share}</span>
+                </div>
+                <div className="hidden sm:block">
+                  <ShareBar pct={t.pct} />
+                </div>
+                <span className="text-[0.75rem] break-words text-muted">{t.driver}</span>
               </div>
-              <div className="hidden sm:block">
-                <ShareBar pct={t.pct} />
-              </div>
-              <span className="text-[0.75rem] break-words text-muted">{t.driver}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+          <p className="mt-3 max-w-[62ch] text-[0.6875rem] leading-relaxed text-muted">
+            {ref.note}. Run the check and this window is generated and reconciled here, on your
+            device.
+          </p>
         </div>
-        <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-          from the repo&apos;s own synthetic-window runs. Run the check and the window is generated
-          and reconciled here, on your device.
-        </p>
+
+        <BuildStrip />
       </div>
     );
   }
 
   return (
     <div className="mono p-4 sm:p-5">
-      <p className={LABEL}>attributed in this tab</p>
+      <WindowPicker selected={selected} />
+
+      <p className={`${LABEL} mt-5 border-t border-rule pt-4`}>attributed in this tab · {g.spec.label}</p>
       <table className="mt-3 w-full border-collapse text-left">
         <caption className="sr-only">
-          Per-team spend attributed from a synthetic CloudTrail window
+          Per-team spend attributed from the {g.spec.label} synthetic CloudTrail window
         </caption>
         <thead>
           <tr>
@@ -391,6 +507,8 @@ export default function CostDNACheck() {
           </li>
         </ol>
       </div>
+
+      <BuildStrip />
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
         attribution walks spend from leaf resources back to owning teams · the totals have to

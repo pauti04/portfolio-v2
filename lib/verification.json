@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-04T06:34:09.665Z",
+  "builtAt": "2026-09-13T05:07:36.190Z",
   "results": {
     "reflight": {
       "pass": true,
@@ -24,13 +24,63 @@
       ],
       "summary": "Recorded failure replayed: 6/6 events, classified wrong_tool_args · loop, network never touched."
     },
+    "chaincheck": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "claim",
+          "value": "\"adds rate limiting to /v2/predict\""
+        },
+        {
+          "label": "detectors flagging",
+          "value": "5/5"
+        },
+        {
+          "label": "ensemble score",
+          "value": "0.91"
+        },
+        {
+          "label": "verdict",
+          "value": "hallucination"
+        },
+        {
+          "label": "TruthfulQA samples · judge agrees with label",
+          "value": "6/6"
+        }
+      ],
+      "summary": "Known hallucinated claim classified correctly: 5/5 detectors flagged it, ensemble score 0.91. Judge alone · TruthfulQA recorded run n=500 · F1 0.70: 6/6 samples agree with their label."
+    },
+    "chaincheck-action": {
+      "pass": true,
+      "mode": "build",
+      "metrics": [
+        {
+          "label": "fail-threshold",
+          "value": "0.80"
+        },
+        {
+          "label": "pr #142",
+          "value": "exit 1"
+        },
+        {
+          "label": "pr #189",
+          "value": "exit 0"
+        },
+        {
+          "label": "pr #207",
+          "value": "exit 0"
+        }
+      ],
+      "summary": "Gate at 0.80 blocked pr #142 (score 0.91) and passed the other two."
+    },
     "bourse": {
       "pass": true,
       "mode": "build",
       "metrics": [
         {
           "label": "ops/sec",
-          "value": "2.29M"
+          "value": "2.25M"
         },
         {
           "label": "orders",
@@ -45,7 +95,7 @@
           "value": "hold"
         }
       ],
-      "summary": "50k orders matched at 2.29M ops/sec on the build machine; book stayed sorted and uncrossed."
+      "summary": "50k orders matched at 2.25M ops/sec on the build machine; book stayed sorted and uncrossed."
     },
     "netpulse": {
       "pass": true,
@@ -75,69 +125,39 @@
       "mode": "build",
       "metrics": [
         {
+          "label": "windows reconciled",
+          "value": "2/2"
+        },
+        {
           "label": "events",
           "value": "20k"
         },
         {
           "label": "ledger total",
-          "value": "$43.64"
+          "value": "$35.95"
         },
         {
           "label": "attributed",
-          "value": "$43.64"
+          "value": "$35.95"
         },
         {
           "label": "unexplained",
           "value": "$0.00"
+        },
+        {
+          "label": "data-platform ledger total",
+          "value": "$54.15"
+        },
+        {
+          "label": "data-platform attributed",
+          "value": "$54.15"
+        },
+        {
+          "label": "data-platform unexplained",
+          "value": "$0.00"
         }
       ],
-      "summary": "20k synthetic CloudTrail events attributed to 3 teams; totals reconcile to the cent."
-    },
-    "chaincheck": {
-      "pass": true,
-      "mode": "build",
-      "metrics": [
-        {
-          "label": "claim",
-          "value": "\"adds rate limiting to /v2/predict\""
-        },
-        {
-          "label": "detectors flagging",
-          "value": "5/5"
-        },
-        {
-          "label": "ensemble score",
-          "value": "0.91"
-        },
-        {
-          "label": "verdict",
-          "value": "hallucination"
-        }
-      ],
-      "summary": "Known hallucinated claim classified correctly: 5/5 detectors flagged it, ensemble score 0.91."
-    },
-    "chaincheck-action": {
-      "pass": true,
-      "mode": "build",
-      "metrics": [
-        {
-          "label": "fail-threshold",
-          "value": "0.80"
-        },
-        {
-          "label": "pr #142",
-          "value": "exit 1"
-        },
-        {
-          "label": "pr #189",
-          "value": "exit 0"
-        },
-        {
-          "label": "pr #207",
-          "value": "exit 0"
-        }
-      ],
-      "summary": "Gate at 0.80 blocked pr #142 (score 0.91) and passed the other two."
+      "summary": "20k synthetic CloudTrail events per window attributed to 3 teams; 2/2 windows (ecommerce, data-platform) reconcile to the cent."
     },
     "rasoibot": {
       "pass": true,
@@ -145,18 +165,18 @@
       "metrics": [
         {
           "label": "recipes indexed",
-          "value": "6"
+          "value": "12"
         },
         {
           "label": "lookups correct",
-          "value": "3/3"
+          "value": "5/5"
         },
         {
           "label": "API calls",
           "value": "0"
         }
       ],
-      "summary": "Pantry lookup returned the right recipe for 2 pantries and honestly declined a third. No API calls."
+      "summary": "Pantry lookup returned the right recipe for 4 pantries and honestly declined a fifth. No API calls."
     }
   }
 }

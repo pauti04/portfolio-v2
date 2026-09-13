@@ -5,11 +5,11 @@
 
 export const CHECK_SLUGS = [
   "reflight",
+  "chaincheck",
+  "chaincheck-action",
   "bourse",
   "netpulse",
   "costdna",
-  "chaincheck",
-  "chaincheck-action",
   "rasoibot",
 ] as const;
 
@@ -68,74 +68,9 @@ export const CLAIMS: Claim[] = [
   },
   {
     id: "CHK-02",
-    slug: "bourse",
-    name: "Bourse",
-    size: "lg",
-    claim:
-      "This order book matches real orders, in this tab, at high throughput on your laptop.",
-    evidence: [
-      { metric: "in-process round-trip", value: "~225 ns", note: "M-series, release build, multi-tenant Hub" },
-      { metric: "TCP RTT loopback p50 / p99", value: "~78 µs / ~307 µs", note: "same setup; a separate measurement from the walk rate" },
-      { metric: "matcher walks 1000 price levels", value: "~94 µs", note: "~10M trades/sec on the matcher alone; TCP-bounded end-to-end ~88k orders/sec" },
-      { metric: "group commit vs fsync-per-record", value: "187–245×", note: "batch=256 on the WAL; byte-exact replay + snapshot recovery" },
-    ],
-    methodology:
-      "Release-build Rust on M-series against the repo's own bench harness; the matcher rate and the TCP end-to-end rate are two different measurements and are not merged.",
-    limits:
-      "The engine running in this tab is a TypeScript port for demonstration. Browser ops/sec is not the Rust number.",
-    reference: "reference (M3): ~225 ns in-process · 1000-level walk ~94 µs",
-    figure: { n: 2, caption: "Price-time-priority burst match, executed in this tab." },
-    source: "https://github.com/pauti04/bourse",
-    reproduce: "git clone https://github.com/pauti04/bourse && cd bourse && cargo bench",
-  },
-  {
-    id: "CHK-03",
-    slug: "netpulse",
-    name: "NetPulse",
-    size: "lg",
-    claim: "This detector is listening to the live global BGP feed right now.",
-    evidence: [
-      { metric: "labeled historical incidents detected", value: "7 / 7", note: "0 false negatives on the public benchmark; runs in ~1 s, no API keys" },
-      { metric: "RPKI validate per call", value: "~43 µs", note: "859k VRPs, warm cache — ~23k calls/sec" },
-      { metric: "speedup shipped on RPKI", value: "500×", note: "linear scan → patricia trie; same machine, dataset, workload" },
-      { metric: "announcements in a 70-second sample", value: "149,246", note: "live RIPE RIS global feed, ~1,800 updates/sec" },
-    ],
-    methodology:
-      "Measured on an M3 (16 GB) against the RIPE RIS dump from 2024-01-12; each number is the median of 1,000 runs with the cache pre-warmed. Methodology in BENCHMARK.md.",
-    limits:
-      "Cold-cache numbers are 1.5–3× slower, and the live check depends on the RIPE RIS feed being reachable — when it isn't, the fallback is labeled, not hidden.",
-    reference: "reference (M3): RPKI validate ~43 µs · benchmark ~1 s",
-    figure: { n: 3, caption: "RIPE RIS live-feed heartbeat; labeled recorded fallback if unreachable." },
-    source: "https://github.com/pauti04/netpulse",
-    reproduce: "git clone https://github.com/pauti04/netpulse  # methodology in BENCHMARK.md",
-  },
-  {
-    id: "CHK-04",
-    slug: "costdna",
-    name: "CostDNA",
-    size: "md",
-    claim:
-      "Per-team attribution over a synthetic CloudTrail window reconciles with the ledger, cent for cent.",
-    evidence: [
-      { metric: "AWS spend that's typically untagged", value: "40–60%", note: "the gap CostDNA closes" },
-      { metric: "bill coverage after inference", value: "~95%", note: "up from the ~half that tags alone explain" },
-      { metric: "raw cost report → per-team breakdown", value: "90 s", note: "end to end; no data leaves the account" },
-      { metric: "the leakage-audit correction", value: "97% → 6.9%", note: "honest post-audit accuracy published next to the inflated first cut" },
-    ],
-    methodology:
-      "Behavioral accuracy is measured on the Azure Public Dataset (2.6M VMs) with leakage-audit passes run to strip trivially-predictable features.",
-    limits:
-      "The honest post-audit behavioral accuracy is 6.9%; the 97% first-cut number was label leakage, and both are published in the repo.",
-    reference: "reference (M3): full attribution pass 90 s end to end",
-    figure: { n: 4, caption: "Attribution over a synthetic CloudTrail window; totals must reconcile." },
-    source: "https://github.com/pauti04/CostDNA",
-    reproduce: "git clone https://github.com/pauti04/CostDNA",
-  },
-  {
-    id: "CHK-05",
     slug: "chaincheck",
     name: "ChainCheck",
-    size: "md",
+    size: "lg",
     claim:
       "A known hallucinated claim is flagged at the exact sentence, not scored as a vague whole.",
     evidence: [
@@ -149,15 +84,15 @@ export const CLAIMS: Claim[] = [
     limits:
       "Recall is 64% — roughly a third of hallucinations get through. This browser check replays the ensemble's recorded scores, not live model calls.",
     reference: "reference: NLI pre-filter 60 ms local · judge escalation only when ambiguous",
-    figure: { n: 5, caption: "Five-detector ensemble scoring a known hallucinated claim." },
+    figure: { n: 2, caption: "Five-detector ensemble scoring a known hallucinated claim, plus six TruthfulQA samples with recorded judge scores." },
     source: "https://github.com/pauti04/chaincheck",
     reproduce: "pip install chaincheck",
   },
   {
-    id: "CHK-06",
+    id: "CHK-03",
     slug: "chaincheck-action",
     name: "ChainCheck Action",
-    size: "sm",
+    size: "lg",
     claim:
       "The merge gate blocks the PR whose description doesn't match its diff, and passes the ones that do.",
     evidence: [
@@ -166,13 +101,78 @@ export const CLAIMS: Claim[] = [
       { metric: "pr #189", value: "exit 0", note: "all three claims supported; highest score 0.18" },
     ],
     methodology:
-      "Same detection core as CHK-05, wired to a GitHub Actions step that reads the PR description and the diff and fails when any claim clears the threshold.",
+      "Same detection core as CHK-02, wired to a GitHub Actions step that reads the PR description and the diff and fails when any claim clears the threshold.",
     limits:
       "The threshold is a policy choice; 0.80 favors not blocking legitimate PRs over catching every hallucination.",
     reference: "reference: threshold 0.80 · gate decision is deterministic",
-    figure: { n: 6, caption: "Threshold gate over per-claim scores for three sample PRs." },
+    figure: { n: 3, caption: "Threshold gate over per-claim scores for three sample PRs." },
     source: "https://github.com/pauti04/chaincheck-action",
     reproduce: "uses: pauti04/chaincheck-action@v1",
+  },
+  {
+    id: "CHK-04",
+    slug: "bourse",
+    name: "Bourse",
+    size: "md",
+    claim:
+      "This order book matches real orders, in this tab, at high throughput on your laptop.",
+    evidence: [
+      { metric: "in-process round-trip", value: "~225 ns", note: "M-series, release build, multi-tenant Hub" },
+      { metric: "TCP RTT loopback p50 / p99", value: "~78 µs / ~307 µs", note: "same setup; a separate measurement from the walk rate" },
+      { metric: "matcher walks 1000 price levels", value: "~94 µs", note: "~10M trades/sec on the matcher alone; TCP-bounded end-to-end ~88k orders/sec" },
+      { metric: "group commit vs fsync-per-record", value: "187–245×", note: "batch=256 on the WAL; byte-exact replay + snapshot recovery" },
+    ],
+    methodology:
+      "Release-build Rust on M-series against the repo's own bench harness; the matcher rate and the TCP end-to-end rate are two different measurements and are not merged.",
+    limits:
+      "The engine running in this tab is a TypeScript port for demonstration. Browser ops/sec is not the Rust number.",
+    reference: "reference (M3): ~225 ns in-process · 1000-level walk ~94 µs",
+    figure: { n: 4, caption: "Price-time-priority burst match, executed in this tab." },
+    source: "https://github.com/pauti04/bourse",
+    reproduce: "git clone https://github.com/pauti04/bourse && cd bourse && cargo bench",
+  },
+  {
+    id: "CHK-05",
+    slug: "netpulse",
+    name: "NetPulse",
+    size: "md",
+    claim: "This detector is listening to the live global BGP feed right now.",
+    evidence: [
+      { metric: "labeled historical incidents detected", value: "7 / 7", note: "0 false negatives on the public benchmark; runs in ~1 s, no API keys" },
+      { metric: "RPKI validate per call", value: "~43 µs", note: "859k VRPs, warm cache — ~23k calls/sec" },
+      { metric: "speedup shipped on RPKI", value: "500×", note: "linear scan → patricia trie; same machine, dataset, workload" },
+      { metric: "announcements in a 70-second sample", value: "149,246", note: "live RIPE RIS global feed, ~1,800 updates/sec" },
+    ],
+    methodology:
+      "Measured on an M3 (16 GB) against the RIPE RIS dump from 2024-01-12; each number is the median of 1,000 runs with the cache pre-warmed. Methodology in BENCHMARK.md.",
+    limits:
+      "Cold-cache numbers are 1.5–3× slower, and the live check depends on the RIPE RIS feed being reachable — when it isn't, the fallback is labeled, not hidden.",
+    reference: "reference (M3): RPKI validate ~43 µs · benchmark ~1 s",
+    figure: { n: 5, caption: "RIPE RIS live-feed heartbeat; labeled recorded fallback if unreachable." },
+    source: "https://github.com/pauti04/netpulse",
+    reproduce: "git clone https://github.com/pauti04/netpulse  # methodology in BENCHMARK.md",
+  },
+  {
+    id: "CHK-06",
+    slug: "costdna",
+    name: "CostDNA",
+    size: "sm",
+    claim:
+      "Per-team attribution over a synthetic CloudTrail window reconciles with the ledger, cent for cent.",
+    evidence: [
+      { metric: "AWS spend that's typically untagged", value: "40–60%", note: "the gap CostDNA closes" },
+      { metric: "bill coverage after inference", value: "~95%", note: "up from the ~half that tags alone explain" },
+      { metric: "raw cost report → per-team breakdown", value: "90 s", note: "end to end; no data leaves the account" },
+      { metric: "the leakage-audit correction", value: "97% → 6.9%", note: "honest post-audit accuracy published next to the inflated first cut" },
+    ],
+    methodology:
+      "Behavioral accuracy is measured on the Azure Public Dataset (2.6M VMs) with leakage-audit passes run to strip trivially-predictable features.",
+    limits:
+      "The honest post-audit behavioral accuracy is 6.9%; the 97% first-cut number was label leakage, and both are published in the repo.",
+    reference: "reference (M3): full attribution pass 90 s end to end",
+    figure: { n: 6, caption: "Attribution over two synthetic CloudTrail windows; totals must reconcile." },
+    source: "https://github.com/pauti04/CostDNA",
+    reproduce: "git clone https://github.com/pauti04/CostDNA",
   },
   {
     id: "CHK-07",
@@ -181,14 +181,14 @@ export const CLAIMS: Claim[] = [
     size: "sm",
     claim: "A small recipe assistant that does one thing politely.",
     evidence: [
-      { metric: "Indian recipes indexed", value: "6", note: "paneer butter masala, aloo pyaaz, chana masala, palak paneer, bhindi do pyaza, tadka dal" },
+      { metric: "Indian recipes indexed", value: "12", note: "paneer butter masala, aloo gobi, chole, bhindi masala, tadka dal, masoor dal, sambar, butter chicken, rajma masala, cucumber raita, kadhi pakora, gobi manchurian" },
       { metric: "API calls per query", value: "0", note: "entirely local; streaming is sleep(14ms) between characters" },
     ],
     methodology:
       "Set-intersection over a hand-curated recipe index. There is no benchmark to report; it's a recipe lookup, not a system.",
     limits:
       "The streaming feel is a UX trick, and the README says so out loud.",
-    reference: "reference: lookup is O(recipes × ingredients) over an index of 6",
+    reference: "reference: lookup is O(recipes × ingredients) over an index of 12",
     figure: { n: 7, caption: "Pantry → recipe lookup; the smallest thing on this page." },
     source: "https://github.com/pauti04/RasoiBot-clean",
     reproduce: "git clone https://github.com/pauti04/RasoiBot-clean && npm install && npm run dev",
