@@ -58,13 +58,16 @@ const NAV_H = "3.25rem";
 // by hand — they still point at the PNGs app/icon.tsx and app/apple-icon.tsx
 // render into out/ at build.
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+// Canonical origin: the custom domain. GitHub redirects the old
+// pauti04.github.io/portfolio-v2/ URL here once the CNAME is live.
+const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://pauti.dev";
 
 const TITLE = "Parth Auti — software engineer, available December 2026";
 const DESCRIPTION =
   "Pune to Manipal to Charlotte: 9,083 miles, three cities, and seven systems that run — each one demonstrated live in this page. Parth Auti, B.S. Computer Science at UNC Charlotte, available December 2026.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`${BASE}/`, "https://pauti04.github.io"),
+  metadataBase: new URL(`${BASE}/`, SITE_ORIGIN),
   title: TITLE,
   description: DESCRIPTION,
   // The social image is file-based: app/opengraph-image.tsx. Next resolves it

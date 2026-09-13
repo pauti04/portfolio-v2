@@ -53,8 +53,6 @@ the pipeline before a browser ever opens.
 
 Static export; anything that serves files works.
 
-- **GitHub Pages**: set `NEXT_PUBLIC_BASE_PATH=/<repo-name>` in the build
-  environment (wired to `basePath`/`assetPrefix` in `next.config.ts`), build,
-  publish `out/`.
+- **GitHub Pages** (custom domain https://pauti.dev): leave `NEXT_PUBLIC_BASE_PATH` unset — the site is served from the domain root. `public/CNAME` carries the domain into the export; DNS at the registrar points the apex A/AAAA records at GitHub Pages and `www` at `pauti04.github.io`.
 - **Vercel**: import the repo, leave `NEXT_PUBLIC_BASE_PATH` unset. Defaults
   work; the export output is detected.
