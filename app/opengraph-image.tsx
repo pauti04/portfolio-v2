@@ -30,7 +30,7 @@ const MUTED = "#8593A1";
 const ROUTE = "#82AAFF";
 
 /** As set in app/page.tsx → Opening(). */
-const POSITIONING = "Eight systems that run — and every one of them runs right here.";
+const POSITIONING = "Eight systems that run, and every one of them runs right here.";
 
 const CITIES = CHAPTERS.map((c) => c.city);
 

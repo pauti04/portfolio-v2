@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-13T13:49:42.835Z",
+  "builtAt": "2026-09-13T14:06:11.860Z",
   "results": {
     "reflight": {
       "pass": true,
@@ -80,7 +80,7 @@
       "metrics": [
         {
           "label": "ops/sec",
-          "value": "2.23M"
+          "value": "2.21M"
         },
         {
           "label": "orders",
@@ -95,7 +95,7 @@
           "value": "hold"
         }
       ],
-      "summary": "50k orders matched at 2.23M ops/sec on the build machine; book stayed sorted and uncrossed."
+      "summary": "50k orders matched at 2.21M ops/sec on the build machine; book stayed sorted and uncrossed."
     },
     "netpulse": {
       "pass": true,
