@@ -142,7 +142,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
       { label: "ensemble rule", value: "4-of-5 to flag" },
     ],
     summary: pass
-      ? `Hallucinated claim scored ${bad.score.toFixed(2)} (${bad.badCount}/5 detectors); supported claim ${good.score.toFixed(2)}. Both verdicts correct.`
+      ? `Hallucinated claim scored ${bad.score.toFixed(2)} (${bad.badCount}/5 detectors), supported claim ${good.score.toFixed(2)}. Both verdicts correct.`
       : "At least one fixture was classified incorrectly.",
   };
 };
@@ -164,7 +164,7 @@ const JUDGE_SAMPLES: JudgeSample[] = truthfulqa.samples;
 const JUDGE_RUN = truthfulqa.run;
 // The label travels with the samples everywhere they appear: a different
 // benchmark from the HaluEval-QA headline, one detector, its own recorded F1.
-const JUDGE_GROUP_LABEL = `the judge alone · TruthfulQA · recorded run n=${JUDGE_RUN.n} · F1 ${JUDGE_RUN.f1.toFixed(2)}`;
+const JUDGE_GROUP_LABEL = `the judge alone on TruthfulQA, recorded run n=${JUDGE_RUN.n}, F1 ${JUDGE_RUN.f1.toFixed(2)}`;
 
 // A recorded row (the judge) or a row with nothing on file for this sample.
 type JudgeRow =
@@ -314,14 +314,14 @@ function EnsembleBody({ preset }: { preset: Preset }) {
           <span className="proj-ink text-[0.9375rem]">{result.verdict}</span>
           <span className="text-[0.8125rem] text-ink-soft">{result.score.toFixed(2)}</span>
           <span className="text-[0.75rem] text-muted">
-            {result.badCount}/5 detectors flag · 4-of-5 required
+            {result.badCount}/5 detectors flag, 4-of-5 required
           </span>
         </p>
       </div>
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-        detector scores are the shipped detector&apos;s recorded outputs — no model calls from a
-        browser tab. The vote itself runs here.
+        Detector scores are the shipped detector&apos;s recorded outputs, since a browser tab
+        makes no model calls. The vote itself runs here.
       </p>
     </>
   );
@@ -340,12 +340,12 @@ function JudgeBody({ sample }: { sample: JudgeSample }) {
         </p>
         <p className={`${LABEL} mt-4`}>checked against</p>
         <pre className="mt-2.5 max-w-[72ch] border-l border-rule pl-3.5 text-[0.75rem] leading-relaxed break-words whitespace-pre-wrap text-muted">
-          {`question: ${sample.question}\nTruthfulQA label: ${result.label} · category: ${sample.category}`}
+          {`question: ${sample.question}\nTruthfulQA label: ${result.label}\ncategory: ${sample.category}`}
         </pre>
       </div>
 
       <div className="mt-5 border-t border-rule pt-4">
-        <p className={LABEL}>one detector, recorded — the judge alone</p>
+        <p className={LABEL}>one detector, recorded. The judge alone</p>
         <div className="mt-3 space-y-2">
           {result.rows.map((r) => (
             <div
@@ -389,17 +389,16 @@ function JudgeBody({ sample }: { sample: JudgeSample }) {
           <span className="text-[0.9375rem] text-ink">{result.verdict}</span>
           <span className="text-[0.8125rem] text-ink-soft">{result.score.toFixed(2)}</span>
           <span className="text-[0.75rem] text-muted">
-            {result.matched ? "matched" : "missed"} the TruthfulQA label ({result.label}) · 1 of 5
-            detectors · no ensemble vote
+            {result.matched ? "matched" : "missed"} the TruthfulQA label ({result.label}). 1 of 5
+            detectors, no ensemble vote
           </span>
         </p>
       </div>
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-        {JUDGE_GROUP_LABEL} · P {JUDGE_RUN.precision.toFixed(2)} · R{" "}
-        {JUDGE_RUN.recall.toFixed(2)} — a lone judge is a
-        probabilistic net; the ensemble above is the product. Different benchmark from the
-        HaluEval-QA headline.
+        {JUDGE_GROUP_LABEL}, P {JUDGE_RUN.precision.toFixed(2)}, R{" "}
+        {JUDGE_RUN.recall.toFixed(2)}. A lone judge is a probabilistic net. The ensemble above
+        is the product, and this is a different benchmark from the HaluEval-QA headline.
       </p>
     </>
   );

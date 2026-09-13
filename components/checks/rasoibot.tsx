@@ -91,7 +91,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
       { label: "API calls", value: "0" },
     ],
     summary: pass
-      ? "Pantry lookup returned the right recipe for four pantries — one by a deterministic tie-break — and declined a fifth honestly, in this tab. 0 API calls."
+      ? "Pantry lookup returned the right recipe for four pantries, one by a deterministic tie-break, and declined a fifth honestly, in this tab. 0 API calls."
       : "At least one pantry lookup returned the wrong recipe.",
   };
 };
@@ -100,7 +100,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
 // Figure body — toggle the pantry, watch the same set-intersection answer.
 //
 // This is the earliest thing on the route and it is dressed accordingly: two
-// zones, one answer, no meters, no tables, and — alone among the seven — no
+// zones, one answer, no meters, no tables, and — alone among the eight — no
 // accent anywhere. The route colour is earned further up the page. Small and
 // honest is the point; the figure is not allowed to argue otherwise. The five
 // lookups the check asserts are listed underneath so the visitor can try them.
@@ -149,12 +149,12 @@ export default function RasoiBotCheck() {
           <>
             <p className="mt-2.5 text-[0.875rem] text-ink">{found.name}</p>
             <p className="mt-1.5 text-[0.75rem] leading-relaxed text-muted">
-              {found.time ? `${found.time} · ` : ""}you&apos;ll also need {found.needs.join(", ")}
+              {found.time ? `${found.time}, and ` : ""}you&apos;ll also need {found.needs.join(", ")}
             </p>
             {tied.length > 0 && (
               <p className="mt-1.5 max-w-[52ch] text-[0.75rem] leading-relaxed text-muted">
-                {tied.join(", ")} also scored {score.toFixed(2)} — a tie keeps the first in the
-                index. add an ingredient to break it.
+                {tied.join(", ")} also scored {score.toFixed(2)}. A tie keeps the first in the
+                index, so add an ingredient to break it.
               </p>
             )}
           </>
@@ -162,7 +162,7 @@ export default function RasoiBotCheck() {
           <>
             <p className="mt-2.5 text-[0.875rem] text-ink-soft">nothing locks in cleanly</p>
             <p className="mt-1.5 max-w-[52ch] text-[0.75rem] leading-relaxed text-muted">
-              try tomato, paneer, or chickpeas. an honest miss beats a confident wrong answer.
+              Try tomato, paneer or chickpeas. A miss beats a confidently wrong answer.
             </p>
           </>
         )}
@@ -177,7 +177,7 @@ export default function RasoiBotCheck() {
               {" → "}
               {c.expect ?? "declines"}
               {c.expect === null || rank(c.pantry).tied.length > 0 ? (
-                <span> · {c.expect === null ? "honest miss" : "tie — first in index wins"}</span>
+                <span> ({c.expect === null ? "a deliberate miss" : "a tie, first in index wins"})</span>
               ) : null}
             </li>
           ))}
@@ -185,9 +185,9 @@ export default function RasoiBotCheck() {
       </div>
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-        set-intersection over a curated index of {INDEX.length} recipes lifted from the
-        app&apos;s recipes.json — this is the index, not the app · 0 API calls · the
-        &quot;streaming&quot; in the real app is sleep(14 ms), and the README says so
+        Set-intersection over a curated index of {INDEX.length} recipes lifted from the
+        app&apos;s recipes.json. This is the index, not the app. 0 API calls. The
+        &quot;streaming&quot; in the real app is sleep(14 ms), and the README says so.
       </p>
     </div>
   );

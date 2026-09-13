@@ -260,7 +260,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
       { label: "unexplained", value: fmtUsd(Math.abs(unexplainedUsd)) },
     ],
     summary: pass
-      ? `${fmtInt(total)} synthetic CloudTrail events (${g.spec.label} window) attributed to ${TEAMS.length} teams in this tab; totals reconcile to the cent.`
+      ? `${fmtInt(total)} synthetic CloudTrail events (${g.spec.label} window) attributed to ${TEAMS.length} teams in this tab. Totals reconcile to the cent.`
       : `Attribution over ${fmtInt(total)} events (${g.spec.label} window) failed to reconcile — see the report lines.`,
   };
   return result;
@@ -316,7 +316,7 @@ function referenceRows(g: Graph) {
   for (const e of spec.edges) perTeam[rootOf(g, e.from).team] += spec.costPerCall[e.to];
   const sum = Object.values(perTeam).reduce((a, b) => a + b, 0);
   return {
-    note: "expected from the graph's per-call costs — no recorded run for this window",
+    note: "expected from the graph's per-call costs, since there is no recorded run for this window",
     rows: spec.teams
       .map((t) => {
         const pct = (perTeam[t] / sum) * 100;
@@ -364,8 +364,8 @@ function WindowPicker({ selected }: { selected: WindowId }) {
         })}
       </div>
       <p className="mt-2 text-[0.6875rem] leading-relaxed text-muted">
-        {WINDOWS[selected].blurb} · {WINDOWS[selected].teams.length} teams ·{" "}
-        {WINDOWS[selected].nodes.length} resources · synthetic by design
+        {WINDOWS[selected].blurb}. {WINDOWS[selected].teams.length} teams,{" "}
+        {WINDOWS[selected].nodes.length} resources, synthetic by design.
       </p>
     </>
   );
@@ -380,9 +380,9 @@ function BuildStrip() {
           const f = buildFigures(id);
           return (
             <p key={id} className="text-[0.6875rem] leading-relaxed text-muted">
-              <span className="text-ink-soft">{WINDOWS[id].label}</span> · ledger {f.ledger} ·
-              attributed {f.attributed} · unexplained {f.unexplained}
-              {f.known ? "" : " · not in this build's verification.json"}
+              <span className="text-ink-soft">{WINDOWS[id].label}</span>: ledger {f.ledger},
+              attributed {f.attributed}, unexplained {f.unexplained}
+              {f.known ? "" : " (not in this build's verification.json)"}
             </p>
           );
         })}
@@ -405,7 +405,7 @@ export default function CostDNACheck() {
         <WindowPicker selected={selected} />
 
         <div className="mt-5 border-t border-rule pt-4">
-          <p className={LABEL}>reference shares · {g.spec.label}</p>
+          <p className={LABEL}>reference shares for the {g.spec.label} window</p>
           <div className="mt-3 space-y-2.5">
             {ref.rows.map((t) => (
               <div
@@ -438,7 +438,7 @@ export default function CostDNACheck() {
     <div className="mono p-4 sm:p-5">
       <WindowPicker selected={selected} />
 
-      <p className={`${LABEL} mt-5 border-t border-rule pt-4`}>attributed in this tab · {g.spec.label}</p>
+      <p className={`${LABEL} mt-5 border-t border-rule pt-4`}>the {g.spec.label} window, attributed in this tab</p>
       <table className="mt-3 w-full border-collapse text-left">
         <caption className="sr-only">
           Per-team spend attributed from the {g.spec.label} synthetic CloudTrail window
@@ -511,8 +511,8 @@ export default function CostDNACheck() {
       <BuildStrip />
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-        attribution walks spend from leaf resources back to owning teams · the totals have to
-        reconcile or the check fails
+        Attribution walks spend from leaf resources back to the owning teams. The totals have
+        to reconcile or the check fails.
       </p>
     </div>
   );

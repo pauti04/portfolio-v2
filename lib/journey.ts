@@ -118,7 +118,7 @@ export const JOURNEY = {
   route: "Pune → Manipal → Charlotte",
   /** the same route without arrow glyphs, for assistive technology */
   routeSpoken: "Pune to Manipal to Charlotte",
-  spine: "Pune to Manipal to Charlotte. 9,083 miles, three cities, seven systems that run.",
+  spine: "Pune to Manipal to Charlotte. 9,083 miles, three cities, eight systems that run.",
   distanceNote: "Great-circle distances, city to city.",
 } as const;
 
@@ -156,7 +156,7 @@ export const CHAPTERS: Chapter[] = [
         kind: "study",
         when: span(mahe.start, mahe.end),
         title: mahe.school,
-        detail: `Computer Science · GPA ${mahe.gpa}`,
+        detail: `Computer Science, GPA ${mahe.gpa}`,
       },
       {
         id: "sih",
@@ -173,7 +173,7 @@ export const CHAPTERS: Chapter[] = [
         title: "Undergraduate research — ML for medical imaging",
         // BRIEF: multiclass brain-tumor classification on MRI; PyTorch / scikit-learn baselines.
         detail:
-          "Multiclass brain-tumor classification on MRI; baselines in PyTorch and scikit-learn.",
+          "Multiclass brain-tumor classification on MRI, with baselines in PyTorch and scikit-learn.",
       },
       {
         id: "it-support",
@@ -192,7 +192,7 @@ export const CHAPTERS: Chapter[] = [
     city: "Charlotte",
     region: "North Carolina, USA",
     dates: `${fmtMonth(uncc.start)} – present`,
-    marker: "8,720 miles further · 9,083 travelled",
+    marker: "8,720 miles further, 9,083 travelled",
     standfirst: "Eight thousand seven hundred and twenty miles further. The work got harder here.",
     milestones: [
       {
@@ -200,7 +200,7 @@ export const CHAPTERS: Chapter[] = [
         kind: "study",
         when: span(uncc.start, uncc.end),
         title: uncc.school,
-        detail: `${uncc.degree} · GPA ${uncc.gpa} · graduating December 2026`,
+        detail: `${uncc.degree}, GPA ${uncc.gpa}, graduating December 2026`,
         note: uncc.honors,
       },
       {

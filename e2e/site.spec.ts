@@ -24,6 +24,7 @@ const STOP_IDS = [
   "stop-bourse",
   "stop-netpulse",
   "stop-costdna",
+  "stop-dispatch",
   "stop-rasoibot",
 ] as const;
 
@@ -47,7 +48,7 @@ test.describe("the opening screen — answered before you touch anything", () =>
 
     // what — the work leads, above the fold
     const opening = page.locator("header").first();
-    await expect(opening).toContainText("Seven systems");
+    await expect(opening).toContainText("Eight systems");
 
     // when — the availability answer, no scrolling, no animation
     await expect(opening).toContainText("December 2026");
@@ -65,7 +66,7 @@ test.describe("the opening screen — answered before you touch anything", () =>
     await expect(journey.locator(".route-spine")).toHaveCount(1);
     await expect(page.locator(".route-spine")).toHaveCount(1);
     // every project stop sits in the work section, none inside the journey
-    await expect(work.locator("article[id^='stop-']")).toHaveCount(7);
+    await expect(work.locator("article[id^='stop-']")).toHaveCount(8);
     await expect(journey.locator("article[id^='stop-']")).toHaveCount(0);
   });
 

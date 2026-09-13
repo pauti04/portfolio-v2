@@ -13,7 +13,7 @@ import { JOURNEY } from "@/lib/journey";
 export default function NotFound() {
   return (
     <main className="mx-auto flex w-full max-w-[var(--page-max)] flex-1 flex-col justify-center pr-5 pb-24 pl-[var(--content-x)] pt-16 sm:pr-10 sm:pt-24 lg:pr-16">
-      <p className="eyebrow">404 · off the route</p>
+      <p className="eyebrow">404, off the route</p>
 
       <h1 className="city-type mt-6 text-[clamp(2.75rem,10vw,6.5rem)]">Not a stop.</h1>
 

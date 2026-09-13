@@ -29,6 +29,12 @@ export default function Chapter({
         className="on-rail on-rail-city"
         style={{ "--node-top": "0.1rem" }}
       >
+        {/* The city, stamped faint behind its own heading. Decorative: the
+            h2 below is the name; this is aria-hidden, drawn from data-city
+            by globals.css (.chapter-watermark) rather than as text, and
+            clipped to the column so it can never widen the page. */}
+        <span aria-hidden="true" className="chapter-watermark" data-city={chapter.city} />
+
         <p className="eyebrow">Chapter {chapter.ordinal}</p>
 
         <h2

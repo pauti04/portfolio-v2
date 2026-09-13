@@ -334,7 +334,7 @@ export const run: CheckRunner = ({ lite, signal, onLog }) => {
 // when, and only when, this tab is genuinely on the feed.
 
 const SIGNALS = [
-  { name: "rpki validity", detail: "announcement checked against the signed ROA · ~43 µs per call" },
+  { name: "rpki validity", detail: "announcement checked against the signed ROA, ~43 µs per call" },
   { name: "moas conflict", detail: "more than one AS originating the same prefix" },
   { name: "path distortion", detail: "an AS-path that is implausibly short, or simply odd" },
 ];
@@ -345,7 +345,7 @@ function PerSecondPlot({ perSec, recorded }: { perSec: number[]; recorded: boole
   return (
     <figure className="mt-5 border-t border-rule pt-3">
       <figcaption className="mono flex flex-wrap items-baseline justify-between gap-x-4 text-[0.6875rem] text-muted">
-        <span>announcements per second{recorded ? " · from the recording" : ""}</span>
+        <span>announcements per second{recorded ? ", from the recording" : ""}</span>
         <span className="tabular-nums">busiest second: {fmtInt(max)}</span>
       </figcaption>
 
@@ -385,9 +385,9 @@ export default function NetPulseCheck() {
   const chipMode = view.mode === "live" ? "live" : recorded ? "recorded" : undefined;
   const chipLabel =
     view.mode === "live"
-      ? "listening · this tab"
+      ? "listening in this tab"
       : recorded
-        ? "recorded session · labeled"
+        ? "recorded session, labeled"
         : "feed not opened yet";
 
   const rate = view.windowSec > 0 ? Math.round(view.count / view.windowSec) : 0;
@@ -397,7 +397,7 @@ export default function NetPulseCheck() {
       {/* where the feed comes from, and what it is doing right now */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-rule pb-3">
         <span className="mono text-[0.75rem] text-ink">
-          ris-live · rrc00 · the global BGP feed
+          ris-live at rrc00, the global BGP feed
         </span>
         <span className="provenance" data-mode={chipMode}>
           {chipLabel}
@@ -409,7 +409,7 @@ export default function NetPulseCheck() {
         <p className="mt-4 max-w-[52ch] text-[0.875rem] leading-relaxed text-ink-soft">
           Nothing counted yet. Run it and this panel opens a socket to RIPE RIS and
           counts real announcements for six seconds. If the feed cannot be reached it
-          replays a recorded session instead — and the label above changes to say so.
+          replays a recorded session instead, and the label above changes to say so.
         </p>
       ) : (
         <div className="mt-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -420,7 +420,7 @@ export default function NetPulseCheck() {
             announcements in {view.windowSec.toFixed(1)} s
           </span>
           <span className="mono text-[0.75rem] tabular-nums text-muted">
-            ~{fmtInt(rate)}/s{recorded ? " · replayed" : " · measured here"}
+            ~{fmtInt(rate)}/s{recorded ? ", replayed" : ", measured here"}
           </span>
         </div>
       )}

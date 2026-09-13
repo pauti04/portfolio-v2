@@ -75,8 +75,8 @@ export default function ProjectStop({
         ? "fail"
         : state.status === "pass"
           ? state.ranByVisitor
-            ? "pass · in your browser"
-            : `pass · ${provenance.label}`
+            ? "pass, in your browser"
+            : `pass, ${provenance.label}`
           : "not run yet";
 
   const headingId = `stop-${slug}-name`;
@@ -97,11 +97,11 @@ export default function ProjectStop({
     >
       <p className="eyebrow proj-ink">
         {companion
-          ? "Same core, different surface"
+          ? "Shares the core above"
           : onRail
             ? "Built here"
             : "System"}
-        <span aria-hidden="true"> · </span>
+        <span aria-hidden="true">, </span>
         {claim.id}
       </p>
 

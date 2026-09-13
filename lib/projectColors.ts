@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// PROJECT ACCENTS — one hue per system, so the seven stops stop blurring
+// PROJECT ACCENTS — one hue per system, so the eight stops stop blurring
 // together. This is a presentation file, not a content file: it never touches
 // lib/claims.ts, and no number or word on the page is read from here.
 //
@@ -18,13 +18,14 @@
 import type { CheckSlug } from "@/lib/claims";
 
 export const PROJECT_ACCENT: Record<CheckSlug, string> = {
-  reflight: "#4C86FF", // blue   220°  — the flagship keeps the house blue
-  bourse: "#A78BFA", // violet 260°
+  reflight: "#82AAFF", // blue   220°  — the flagship keeps the house blue
+  bourse: "#B9A6FF", // violet 260°
   netpulse: "#22D3EE", // cyan   190°
   costdna: "#4ADE80", // green  140°
   chaincheck: "#F5B544", // amber   40°
   "chaincheck-action": "#F5B544", // amber   40°  — companion, same hue
   rasoibot: "#A3E635", // lime    80°
+  dispatch: "#E879F9", // orchid 290°
 };
 
 /** The accent for a project, as a CSS colour string. */

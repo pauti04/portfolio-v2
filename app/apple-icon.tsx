@@ -23,7 +23,7 @@ export default function AppleIcon() {
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
-          background: "#0A0D12",
+          background: "#1E2438",
         }}
       >
         <div
@@ -37,7 +37,7 @@ export default function AppleIcon() {
             background: "#303B4A",
           }}
         />
-        <div style={{ width: 68, height: 68, borderRadius: 34, background: "#4C86FF" }} />
+        <div style={{ width: 68, height: 68, borderRadius: 34, background: "#82AAFF" }} />
       </div>
     ),
     size,

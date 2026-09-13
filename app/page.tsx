@@ -2,7 +2,7 @@
 // NINE THOUSAND MILES — the whole journey, on one line.
 //
 // Pune → 362 mi → Manipal → 8,720 mi → Charlotte, and the things he built
-// getting harder the further he went. The seven demos still run; they are
+// getting harder the further he went. The eight demos still run; they are
 // planted where and when they were made.
 //
 // Every fact on this page comes from lib/journey.ts (which reads app/cv/
@@ -19,6 +19,7 @@ import Chapter from "@/components/journey/Chapter";
 import DistanceMarker from "@/components/journey/DistanceMarker";
 import Enter from "@/components/journey/Enter";
 import ProjectStop from "@/components/journey/ProjectStop";
+import RouteMasthead from "@/components/journey/RouteMasthead";
 import RouteSpine from "@/components/journey/RouteSpine";
 import RunAll from "@/components/journey/RunAll";
 
@@ -26,6 +27,7 @@ import ReflightCheck from "@/components/checks/reflight";
 import BourseCheck from "@/components/checks/bourse";
 import NetPulseCheck from "@/components/checks/netpulse";
 import CostDNACheck from "@/components/checks/costdna";
+import DispatchCheck from "@/components/checks/dispatch";
 import ChainCheckCheck from "@/components/checks/chaincheck";
 import ChainCheckActionCheck from "@/components/checks/chaincheck-action";
 import RasoiBotCheck from "@/components/checks/rasoibot";
@@ -53,16 +55,19 @@ const charlotte = chapterById("charlotte");
 function Opening() {
   return (
     <header className="pt-24 sm:pt-32">
-      <p className="eyebrow">Software engineer · systems + ML</p>
+      <p className="eyebrow">Software engineer, systems and ML</p>
 
       <h1 className="city-type mt-6 text-[clamp(3.25rem,12vw,9rem)]">
         {CONTACT.name}
       </h1>
 
       <p className="mt-8 max-w-[26ch] text-[clamp(1.375rem,4.4vw,2.125rem)] leading-[1.22] text-ink">
-        <span className="text-route">Seven systems</span> that run — and every
+        <span className="text-route">Eight systems</span> that run, and every
         one of them runs right here.
       </p>
+
+      {/* the route, drawn: the same three nodes the social card carries */}
+      <RouteMasthead className="mt-8" />
 
       {/* the receipt for that sentence — same data the Arrival reads */}
       <div className="mt-5">
@@ -70,9 +75,10 @@ function Opening() {
       </div>
 
       <p className="mt-6 max-w-[54ch] text-[1.0625rem] leading-relaxed text-ink-soft">
-        AI agent reliability and applied ML. A flight recorder for agents, a
-        matching engine, a detector on the live global BGP feed: live where
-        they can be, from a labelled recording where they cannot.
+        Most of my work is AI agent reliability and applied ML. There is a
+        flight recorder for agents here, a matching engine, and a detector on
+        the live global BGP feed. Each runs live where it can and from a
+        labelled recording where it can&apos;t.
       </p>
 
       <p className="mono mt-9 max-w-[46ch] text-[0.8125rem] leading-relaxed text-ink-soft">
@@ -135,15 +141,20 @@ function Arrival() {
     >
       <Enter className="on-rail on-rail-marker" style={{ "--node-top": "0.1rem" }}>
         <p className="eyebrow">Arrival</p>
-        <h2
-          id="arrival-title"
-          className="city-type mt-6 text-[clamp(2.75rem,10vw,5.5rem)]"
-        >
-          December 2026
-        </h2>
+        <div className="sect-head mt-6">
+          <span aria-hidden="true" className="sect-index">03</span>
+          <h2
+            id="arrival-title"
+            className="city-type min-w-0 text-[clamp(2.75rem,10vw,5.5rem)]"
+          >
+            December 2026
+          </h2>
+          <span aria-hidden="true" className="sect-rule" />
+        </div>
+        <div aria-hidden="true" className="ticks mt-3" />
         <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-ink-soft">
-          Graduating from UNC Charlotte, and looking for the next place to build
-          things and measure them.
+          I graduate from UNC Charlotte then, and I&apos;m looking for the next place
+          to build things and measure them.
         </p>
       </Enter>
 
@@ -191,9 +202,9 @@ function Arrival() {
       <Enter delay={0.14} className="mt-12 sm:mt-14">
         <h3 className="eyebrow">Every demo above runs</h3>
         <p className="mt-5 max-w-[56ch] text-[0.9375rem] leading-relaxed text-ink-soft">
-          The page is pre-verified at build time, so it is honest before you
-          touch it. Running them yourself replaces the build numbers with your
-          own.
+          Every figure on this page was checked when the site was built, before
+          you touched anything. Run the demos yourself and those build numbers
+          are replaced with ones from your own machine.
         </p>
         <div className="mt-6">
           <RunAll />
@@ -206,8 +217,7 @@ function Arrival() {
           {DOES_NOT_CLAIM[0]} {DOES_NOT_CLAIM[1]} {DOES_NOT_CLAIM[3]}
         </p>
         <p className="mono mt-8 text-[0.75rem] tracking-[0.16em] text-muted uppercase">
-          Built and verified {builtStamp}
-          <span aria-hidden="true"> · </span>
+          Built and verified {builtStamp}.{" "}
           {JOURNEY.distanceNote}
         </p>
       </Enter>
@@ -228,16 +238,21 @@ function Work() {
       className="scroll-mt-16 pt-24 sm:pt-32"
     >
       <p className="eyebrow">The work</p>
-      <h2
-        id="work-title"
-        className="city-type mt-4 text-[clamp(2.25rem,7vw,4rem)]"
-      >
-        Seven systems
-      </h2>
+      <div className="sect-head mt-4">
+        <span aria-hidden="true" className="sect-index">01</span>
+        <h2
+          id="work-title"
+          className="city-type min-w-0 text-[clamp(2.25rem,7vw,4rem)]"
+        >
+          Eight systems
+        </h2>
+        <span aria-hidden="true" className="sect-rule" />
+      </div>
+      <div aria-hidden="true" className="ticks mt-3" />
       <p className="mt-6 max-w-[58ch] text-[1.0625rem] leading-relaxed text-ink-soft">
-        Every one of them executes on this page. The figures below are measured
-        at build time — press <span className="text-ink">run it</span> on any of
-        them and they are replaced by numbers from your own machine.
+        Every one of them executes on this page. The figures below were measured
+        when the site was built. Press <span className="text-ink">run it</span> on
+        any of them and they&apos;re replaced by numbers from your own machine.
       </p>
 
       <ProjectStop slug="reflight" onRail={false}>
@@ -261,6 +276,10 @@ function Work() {
 
       <ProjectStop slug="costdna" onRail={false}>
         <CostDNACheck />
+      </ProjectStop>
+
+      <ProjectStop slug="dispatch" onRail={false}>
+        <DispatchCheck />
       </ProjectStop>
 
       <ProjectStop slug="rasoibot" onRail={false}>
@@ -292,12 +311,17 @@ function Journey() {
         <span aria-hidden="true">{JOURNEY.route}</span>
         <span className="sr-only">{JOURNEY.routeSpoken}</span>
       </p>
-      <h2
-        id="journey-title"
-        className="city-type mt-4 text-[clamp(2.25rem,7vw,4rem)]"
-      >
-        The road here
-      </h2>
+      <div className="sect-head mt-4">
+        <span aria-hidden="true" className="sect-index">02</span>
+        <h2
+          id="journey-title"
+          className="city-type min-w-0 text-[clamp(2.25rem,7vw,4rem)]"
+        >
+          The road here
+        </h2>
+        <span aria-hidden="true" className="sect-rule" />
+      </div>
+      <div aria-hidden="true" className="ticks mt-3" />
       <p className="mt-6 max-w-[56ch] text-[1.0625rem] leading-relaxed text-ink-soft">
         Three cities and <span className="text-route">9,083 miles</span>, in the
         order they happened.

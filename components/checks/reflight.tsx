@@ -154,7 +154,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
       { label: "cost", value: "$0.00" },
     ],
     summary: pass
-      ? `Recorded failure replayed and classified ${live.classification}; the live re-run matches the build run in all ${DIFF_FIELDS.length} fields.`
+      ? `Recorded failure replayed and classified ${live.classification}. The live re-run matches the build run in all ${DIFF_FIELDS.length} fields.`
       : "Live re-run diverged from the recorded build-verification run.",
   };
 };
@@ -227,7 +227,7 @@ export default function ReflightCheck() {
           <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
             <span className="mono text-[0.75rem] text-ink">support-run-19</span>
             <span className="mono text-[0.6875rem] text-muted">
-              recorded failure · network hard-blocked · $0.00
+              recorded failure, network hard-blocked, $0.00
             </span>
           </div>
         </Reveal>
@@ -280,8 +280,8 @@ export default function ReflightCheck() {
                     {live.classification}
                   </p>
                   <p className="mt-2.5 max-w-[54ch] text-[0.8125rem] leading-relaxed text-muted">
-                    Read off the five events above, not stored alongside them — the same
-                    function produces this label here and in the check.
+                    Computed from the five events above rather than stored with them. The
+                    same function produces this label here and in the check.
                   </p>
                 </div>
               </div>
@@ -301,7 +301,7 @@ export default function ReflightCheck() {
               this site&apos;s own build-verification run
             </span>
             <span className="mono text-[0.6875rem] text-muted">
-              recorded {build.builtAt.slice(0, 10)} · re-run in this tab
+              recorded {build.builtAt.slice(0, 10)}, re-run in this tab
             </span>
           </div>
         </Reveal>
@@ -324,10 +324,10 @@ export default function ReflightCheck() {
                     field
                   </th>
                   <th scope="col" className="py-2.5 pr-5 font-normal">
-                    recorded · build
+                    recorded at build
                   </th>
                   <th scope="col" className="py-2.5 pr-5 font-normal">
-                    re-run · this tab
+                    re-run in this tab
                   </th>
                   <th scope="col" className="py-2.5 font-normal">
                     Δ
@@ -362,7 +362,7 @@ export default function ReflightCheck() {
         <Reveal variant="dim" delay={0.2}>
           <p className="mt-4 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted">
             {clean
-              ? `All ${DIFF_FIELDS.length} fields identical. The page replays its own recording cleanly — and the replay never touches the network, which is why it costs $0.00.`
+              ? `All ${DIFF_FIELDS.length} fields identical. The page replays its own recording cleanly. The replay never touches the network, which is why it costs $0.00.`
               : `${divergent} of ${DIFF_FIELDS.length} fields diverge from the recorded run.`}
           </p>
         </Reveal>

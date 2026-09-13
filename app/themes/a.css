@@ -21,7 +21,7 @@
    numbered variants. Archivo was drawn by Omnibus-Type off American
    gothics for signage and government forms, so it stays rigid at 120px and
    stays legible at 11px, and its numerals are flat, even and unmistakable —
-   which matters on a page whose subject is 9,083 miles and seven passing
+   which matters on a page whose subject is 9,083 miles and eight passing
    test suites. Set tight and large, it reads as drafted rather than typed.
 
    IBM PLEX MONO for data. Not a costume mono: it was commissioned as the
@@ -40,7 +40,7 @@
    inside). --rule is a slate drafting line, drawn light enough to be a grid
    and hard enough to be seen.
 
-   --route #4C86FF is the only saturated colour in the system, and it is
+   --route #82AAFF is the only saturated colour in the system, and it is
    structural: the journey line down the left rail, the distance markers,
    the live indicator, the running state. It is never a highlight, never a
    button fill, never applied to a heading because the heading looked plain.
@@ -49,15 +49,20 @@
 
    ── MEASURED CONTRAST (sRGB, WCAG 2.1, computed not eyeballed) ────────────
 
+   2026-09-13: the whole range lifted from near-black to a lit indigo ("it looks
+   too dark", twice — grey lifts did not help; white was ruled out). Same identity, same one blue; every pairing re-measured below.
+   --ground-deep stays the darkest plane so the demo wells still read as
+   machines set into the page.
+
                               on --ground   on --ground-deep   on --panel
-                                #0A0D12        #05070A          #12161D
-     --ink       #F3F6F9         17.94:1        18.59:1          16.72:1
-     --ink-soft  #AFBAC6          9.88:1        10.24:1           9.21:1
-     --muted     #8593A1          6.19:1         6.42:1           5.77:1   (used at 13px)
-     --route     #4C86FF          5.71:1         5.92:1           5.32:1   (carries text)
-     --fail      #FF5A6E          6.43:1         6.66:1           5.99:1
-     --pass      = --ink         17.94:1        18.59:1          16.72:1
-     --running   = --route        5.71:1         5.92:1           5.32:1
+                                #1E2438        #12162A          #2B3452
+     --ink       #FFFFFF        15.39:1        17.89:1          12.24:1
+     --ink-soft  #CBD3E6        10.26:1        11.93:1           8.16:1
+     --muted     #9EAAC7         6.62:1         7.69:1           5.26:1   (used at 13px)
+     --route     #82AAFF         6.70:1         7.79:1           5.33:1   (carries text)
+     --fail      #FF8594         6.62:1         7.70:1           5.27:1
+     --pass      = --ink         15.39:1        17.89:1          12.24:1
+     --running   = --route          6.70:1           7.79:1             5.33:1
 
    Required: ink >= 7, everything else >= 4.5. Lowest value anywhere in the
    system is 5.32:1 — a full stop clear of the floor on every surface.
@@ -69,7 +74,7 @@
 
    ── PROJECT ACCENTS ───────────────────────────────────────────────────────
 
-   The one licensed departure from "one blue". Each of the seven systems owns
+   The one licensed departure from "one blue". Each of the eight systems owns
    a hue, so the stops stop blurring together and become scannable at a
    glance — but this is an accent system, not a rainbow. Ground stays
    --ground, body stays --ink, --route still means the route, --pass/--fail
@@ -79,21 +84,22 @@
    accident. Everything that reads it reads `var(--proj, var(--route))`.
 
                               on --ground   on --ground-deep   on --panel
-                                #0A0D12        #05070A          #12161D
-     reflight          #4C86FF    5.71:1         5.92:1           5.32:1
-     bourse            #A78BFA    7.15:1         7.41:1           6.66:1
-     netpulse          #22D3EE   10.77:1        11.16:1          10.03:1
-     costdna           #4ADE80   11.17:1        11.57:1          10.41:1
-     chaincheck        #F5B544   10.73:1        11.12:1           9.99:1
-     chaincheck-action #F5B544   10.73:1        11.12:1           9.99:1
-     rasoibot          #A3E635   12.91:1        13.38:1          12.02:1
-
-   All seven clear AA 4.5:1 for text on every surface; the lowest is the
+                                #1E2438        #12162A          #2B3452
+     reflight          #82AAFF    6.70:1         7.79:1           5.33:1
+     bourse            #B9A6FF    7.30:1         8.49:1           5.81:1
+     netpulse          #22D3EE    8.52:1         9.90:1           6.77:1
+     costdna           #4ADE80    8.83:1        10.27:1           7.02:1
+     chaincheck        #F5B544    8.48:1         9.86:1           6.75:1
+     chaincheck-action #F5B544    8.48:1         9.86:1           6.75:1
+     rasoibot          #A3E635   10.21:1        11.86:1           8.12:1
+     dispatch          #E879F9    6.25:1         7.27:1           4.97:1
+   All eight clear AA 4.5:1 for text on every surface; the lowest is the
    flagship's own blue on --panel at 5.32:1, the same floor as --route.
    Hue spread: blue 220° · violet 260° · cyan 190° · green 140° · amber 40° ·
-   lime 80°. Nothing sits next to --fail (#FF5A6E, ~353°), so no accent can
-   be read as an error state. chaincheck-action shares chaincheck's amber
-   on purpose — it is the companion, and the shared hue says so.
+   lime 80° · orchid 290°. Nothing sits next to --fail (#FF5A6E, ~353°), so
+   no accent can be read as an error state. chaincheck-action shares
+   chaincheck's amber on purpose — it is the companion, and the shared hue
+   says so.
 
    ALLOWED — exactly these, nothing else:
      1. the project eyebrow ("Built here · CHK-05")
@@ -125,22 +131,22 @@
   --font-mono: var(--ff-plex-mono);
 
   /* ground & ink — cool near-black, three planes, chalk-white */
-  --ground: #0a0d12;
-  --ground-deep: #05070a;
-  --panel: #12161d;
-  --ink: #f3f6f9;
-  --ink-soft: #afbac6;
-  --muted: #8593a1;
-  --rule: #303b4a;
-  --rule-soft: #1c242e;
+  --ground: #1e2438;
+  --ground-deep: #12162a;
+  --panel: #2b3452;
+  --ink: #ffffff;
+  --ink-soft: #cbd3e6;
+  --muted: #9eaac7;
+  --rule: #3b4568;
+  --rule-soft: #283050;
 
   /* the route — the only saturated colour, and it is structural */
-  --route: #4c86ff;
+  --route: #82aaff;
   --route-deep: #1f4fd8;
   --route-ghost: rgba(76, 134, 255, 0.2);
 
   /* states — pass is simply ink, because a pass is not an event */
   --pass: var(--ink);
   --running: var(--route);
-  --fail: #ff5a6e;
+  --fail: #ff8594;
 }

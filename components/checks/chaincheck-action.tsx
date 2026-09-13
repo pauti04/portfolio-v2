@@ -226,7 +226,7 @@ export default function ChainCheckActionCheck() {
             </span>
             <span className="text-[0.75rem] text-muted">
               {decision.failed.length} claim{decision.failed.length > 1 ? "s" : ""} at or above{" "}
-              {threshold.toFixed(2)} · merge blocked
+              {threshold.toFixed(2)}, merge blocked
             </span>
           </p>
         ) : (
@@ -235,15 +235,15 @@ export default function ChainCheckActionCheck() {
               <span aria-hidden="true">✓ </span>exit 0
             </span>
             <span className="text-[0.75rem] text-muted">
-              all claims below {threshold.toFixed(2)} · merge allowed
+              all claims below {threshold.toFixed(2)}, merge allowed
             </span>
           </p>
         )}
       </div>
 
       <p className="mt-5 max-w-[62ch] border-t border-rule pt-3 text-[0.6875rem] leading-relaxed text-muted">
-        per-claim scores come from the same detection core as CHK-05, recorded. The gate arithmetic
-        runs here — move the threshold and the exit code follows.
+        Per-claim scores come from the same detection core as CHK-05, recorded. The gate arithmetic
+        runs here. Move the threshold and the exit code follows.
       </p>
     </div>
   );

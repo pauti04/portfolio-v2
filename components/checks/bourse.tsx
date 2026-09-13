@@ -244,7 +244,7 @@ export const run: CheckRunner = async ({ lite, signal, onLog }) => {
       { label: "book invariants", value: pass ? "hold" : "violated" },
     ],
     summary: pass
-      ? `${fmtInt(total)} orders matched in this tab at ${fmtOps(opsPerSec)} ops/sec; the book stayed sorted and uncrossed.`
+      ? `${fmtInt(total)} orders matched in this tab at ${fmtOps(opsPerSec)} ops/sec. The book stayed sorted and uncrossed.`
       : `Book invariant violated after ${fmtInt(total)} orders — see the report lines.`,
   };
   return result;
@@ -347,10 +347,10 @@ export default function BourseCheck() {
     <div className="p-4 sm:p-5" style={BOOK_TONES}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-rule pb-3">
         <span className="mono text-[0.75rem] text-ink">
-          price-time priority · matched in this tab
+          price-time priority, matched in this tab
         </span>
         <span className="mono text-[0.6875rem] text-muted">
-          {view.ran ? "after the burst" : "seeded book · not yet run"}
+          {view.ran ? "after the burst" : "seeded book, not yet run"}
         </span>
       </div>
 
@@ -409,8 +409,8 @@ export default function BourseCheck() {
             <span className="text-[0.875rem] text-ink-soft">ops/sec on this device</span>
           </div>
           <p className="mono mt-2 text-[0.6875rem] tabular-nums text-muted">
-            {fmtInt(view.orders)} orders in {view.workMs.toFixed(1)} ms · matching work
-            only, yields excluded · {fmtInt(view.matched)} orders matched
+            {fmtInt(view.orders)} orders in {view.workMs.toFixed(1)} ms, {fmtInt(view.matched)}{" "}
+            of them matched. Matching work only, yields excluded.
           </p>
 
           {view.batches.length > 0 && (

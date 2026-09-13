@@ -23,14 +23,14 @@ export const contentType = "image/png";
 
 // Blueprint palette, mirrored from app/themes/a.css. satori cannot read CSS
 // custom properties, so the hex values are repeated here — and only here.
-const GROUND = "#0A0D12";
+const GROUND = "#1E2438";
 const INK = "#F3F6F9";
 const INK_SOFT = "#AFBAC6";
 const MUTED = "#8593A1";
-const ROUTE = "#4C86FF";
+const ROUTE = "#82AAFF";
 
 /** As set in app/page.tsx → Opening(). */
-const POSITIONING = "Seven systems that run — and every one of them runs right here.";
+const POSITIONING = "Eight systems that run — and every one of them runs right here.";
 
 const CITIES = CHAPTERS.map((c) => c.city);
 

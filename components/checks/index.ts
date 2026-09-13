@@ -15,4 +15,5 @@ export const loadRunner: Record<CheckSlug, () => Promise<CheckRunner>> = {
   chaincheck: () => import("./chaincheck").then((m) => m.run),
   "chaincheck-action": () => import("./chaincheck-action").then((m) => m.run),
   rasoibot: () => import("./rasoibot").then((m) => m.run),
+  dispatch: () => import("./dispatch").then((m) => m.run),
 };

@@ -9,6 +9,14 @@
 // are set to zero before first paint and counted up on arrival by writing
 // textContent directly: no React re-render per frame, no hydration seam. The
 // numeral reserves its final width in `ch`, so counting shifts nothing.
+//
+// Beside the number, the leg itself: a thin arc from departure to arrival,
+// stroked route-deep → route like the spine — a pen loading with ink. It is
+// decorative and aria-hidden (the sentence "N miles" carries the fact), and
+// it reserves its box with width/height attributes so nothing shifts when a
+// stylesheet lands. It draws itself in on arrival under exactly the
+// conditions the digits count, via one data attribute written next to them;
+// otherwise it is simply drawn.
 // ----------------------------------------------------------------------------
 
 import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
@@ -20,6 +28,51 @@ const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayout
 const group = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 const COUNT_MS = 1200;
+
+// The arc's geometry, in its own user units. Departure and arrival sit on the
+// same line (the flex row's baseline) and the curve rises between them; the
+// major leg gets the wider hop. Not to scale — the numeral is the measure.
+const ARC = {
+  major: { w: 132, h: 60, d: "M 8 52 C 38 -4, 94 -4, 124 52", from: [8, 52], to: [124, 52] },
+  minor: { w: 84, h: 44, d: "M 8 36 C 28 2, 56 2, 76 36", from: [8, 36], to: [76, 36] },
+} as const;
+
+/** The leg, drawn: route-deep at departure, the route blue at arrival. */
+function LegArc({ id, major }: { id: string; major: boolean }) {
+  const a = major ? ARC.major : ARC.minor;
+  const gradient = `dm-arc-${id}`;
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      className="dm-arc"
+      width={a.w}
+      height={a.h}
+      viewBox={`0 0 ${a.w} ${a.h}`}
+    >
+      <defs>
+        <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: "var(--route-deep)" }} />
+          <stop offset="1" style={{ stopColor: "var(--route)" }} />
+        </linearGradient>
+      </defs>
+      <path
+        className="dm-arc-path"
+        d={a.d}
+        pathLength={1}
+        fill="none"
+        stroke={`url(#${gradient})`}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx={a.from[0]} cy={a.from[1]} r="3" style={{ fill: "var(--route-deep)" }} />
+      <g className="dm-arc-arrival">
+        <circle cx={a.to[0]} cy={a.to[1]} r="7" style={{ fill: "var(--route-ghost)" }} />
+        <circle cx={a.to[0]} cy={a.to[1]} r="3.5" style={{ fill: "var(--route)" }} />
+      </g>
+    </svg>
+  );
+}
 
 export default function DistanceMarker({ leg }: { leg: Leg }) {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -36,6 +89,7 @@ export default function DistanceMarker({ leg }: { leg: Leg }) {
     if (root.getBoundingClientRect().top < window.innerHeight) return;
 
     num.textContent = "0";
+    root.dataset.count = "primed";
     let frame = 0;
 
     const io = new IntersectionObserver(
@@ -44,11 +98,13 @@ export default function DistanceMarker({ leg }: { leg: Leg }) {
           // Jumped clean past it? Put the real number back and stop.
           if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
             num.textContent = final;
+            delete root.dataset.count;
             io.disconnect();
             continue;
           }
           if (!entry.isIntersecting) continue;
           io.disconnect();
+          root.dataset.count = "in";
           const started = performance.now();
           const step = (now: number) => {
             const p = Math.min(1, (now - started) / COUNT_MS);
@@ -113,6 +169,8 @@ export default function DistanceMarker({ leg }: { leg: Leg }) {
           miles
         </span>
         <span className="sr-only">{final} miles</span>
+        {/* the leg, drawn — sits on the row's baseline beside the numeral */}
+        <LegArc id={leg.id} major={major} />
       </p>
 
       <p

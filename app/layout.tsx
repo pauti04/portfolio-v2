@@ -64,7 +64,7 @@ const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_ORIGIN ?? "https://pauti.dev";
 
 const TITLE = "Parth Auti — software engineer, available December 2026";
 const DESCRIPTION =
-  "Pune to Manipal to Charlotte: 9,083 miles, three cities, and seven systems that run — each one demonstrated live in this page. Parth Auti, B.S. Computer Science at UNC Charlotte, available December 2026.";
+  "Pune to Manipal to Charlotte: 9,083 miles, three cities, and eight systems that run — each one demonstrated live in this page. Parth Auti, B.S. Computer Science at UNC Charlotte, available December 2026.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(`${BASE}/`, SITE_ORIGIN),
@@ -96,7 +96,7 @@ export const metadata: Metadata = {
 
 // Browser chrome painted to the actual --ground (app/themes/a.css).
 export const viewport: Viewport = {
-  themeColor: "#0A0D12",
+  themeColor: "#1E2438",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

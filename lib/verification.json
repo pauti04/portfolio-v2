@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-13T05:07:36.190Z",
+  "builtAt": "2026-09-13T13:49:42.835Z",
   "results": {
     "reflight": {
       "pass": true,
@@ -80,7 +80,7 @@
       "metrics": [
         {
           "label": "ops/sec",
-          "value": "2.25M"
+          "value": "2.23M"
         },
         {
           "label": "orders",
@@ -95,7 +95,7 @@
           "value": "hold"
         }
       ],
-      "summary": "50k orders matched at 2.25M ops/sec on the build machine; book stayed sorted and uncrossed."
+      "summary": "50k orders matched at 2.23M ops/sec on the build machine; book stayed sorted and uncrossed."
     },
     "netpulse": {
       "pass": true,
@@ -158,6 +158,33 @@
         }
       ],
       "summary": "20k synthetic CloudTrail events per window attributed to 3 teams; 2/2 windows (ecommerce, data-platform) reconcile to the cent."
+    },
+    "dispatch": {
+      "pass": true,
+      "mode": "recorded",
+      "metrics": [
+        {
+          "label": "stories in the edition",
+          "value": "4"
+        },
+        {
+          "label": "why-it-matters lines",
+          "value": "4/4"
+        },
+        {
+          "label": "candidates pooled → chosen",
+          "value": "118 → 4"
+        },
+        {
+          "label": "stream events replayed",
+          "value": "93/93"
+        },
+        {
+          "label": "deep-equal replay",
+          "value": "✓"
+        }
+      ],
+      "summary": "Recorded edition replayed as 93 SSE events and reassembled deep-equal to the fixture: 4 stories chosen from 118 candidates, 4/4 carrying a why-it-matters line, Editor's Take present."
     },
     "rasoibot": {
       "pass": true,

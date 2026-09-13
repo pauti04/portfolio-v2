@@ -1,7 +1,7 @@
 # nine thousand miles — a portfolio you travel
 
 Portfolio site for Parth Auti, built as one scrolling journey: Pune → Manipal →
-Charlotte, 9,083 great-circle miles in three chapters, with the seven live demos
+Charlotte, 9,083 great-circle miles in three chapters, with the eight live demos
 planted where and when they were made — a recipe assistant in Manipal, a flight
 recorder for AI agents in Charlotte — so the growth curve is something you read
 by scrolling rather than something the page claims. The opening screen answers

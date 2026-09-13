@@ -21,6 +21,7 @@ const fixture = (name) =>
 const TRUTHFULQA = fixture("chaincheck-truthfulqa.json");
 const RASOI = fixture("rasoibot-index.json");
 const COSTDNA = fixture("costdna-windows.json");
+const DISPATCH = fixture("dispatch-edition.json");
 
 /** mulberry32 — tiny deterministic PRNG. */
 function rng(seed) {
@@ -234,7 +235,93 @@ function costdna() {
   };
 }
 
-// --- CHK-07 · rasoibot: the lookup looks things up ---------------------------
+// --- CHK-07 · dispatch: replay the recorded edition as its SSE stream --------
+// The committed sample edition (lib/checks/fixtures/dispatch-edition.json —
+// client/public/sample-brief.json of the public repo, verbatim) serialized and
+// cut into 48-char "delta" chunks between one "start" and one "complete", the
+// same fixed cut the browser check uses (components/checks/dispatch.tsx), so
+// the event list is identical in both places. Assertions: the accumulated
+// deltas reassemble deep-equal to the fixture; the first headline is readable
+// from the accumulated text before "complete"; every story carries a
+// why-it-matters line; an Editor's Take exists; the candidate pool (the six
+// story feeds in counts — hn, gh, lobsters, reddit, arxiv, show_hn; not
+// clusters, whos_hiring or layoffs) is larger than what was chosen. The repo's
+// ~800 ms first-headline figure is not measured here and is not asserted.
+function dispatch() {
+  const EDITION = DISPATCH.edition;
+  const CHUNK = 48;
+  const WIRE = JSON.stringify(EDITION);
+  const DELTAS = Math.ceil(WIRE.length / CHUNK);
+  const EVENTS = DELTAS + 2; // start + deltas + complete
+  const HEADLINE_RE = /"headline"\s*:\s*"((?:[^"\\]|\\.)*)"/;
+
+  const deepEqual = (a, b) => {
+    if (a === b) return true;
+    if (typeof a !== typeof b || a === null || b === null) return false;
+    if (Array.isArray(a) || Array.isArray(b)) {
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+      return a.every((v, i) => deepEqual(v, b[i]));
+    }
+    if (typeof a === "object") {
+      const ka = Object.keys(a), kb = Object.keys(b);
+      if (ka.length !== kb.length) return false;
+      return ka.every((k) => Object.prototype.hasOwnProperty.call(b, k) && deepEqual(a[k], b[k]));
+    }
+    return false;
+  };
+
+  let replayed = 1; // start
+  let acc = "";
+  let headline = null;
+  let headlineDelta = 0;
+  for (let i = 0; i < DELTAS; i++) {
+    acc += WIRE.slice(i * CHUNK, (i + 1) * CHUNK);
+    replayed++;
+    if (headline === null) {
+      const m = HEADLINE_RE.exec(acc);
+      if (m) { headline = m[1]; headlineDelta = i + 1; }
+    }
+  }
+  replayed++; // complete
+  let reassembled = null;
+  try { reassembled = JSON.parse(acc); } catch { reassembled = null; }
+
+  const stories = EDITION.sections.flatMap((s) => s.stories);
+  const STORY_COUNT = stories.length;
+  const WHY_COUNT = stories.filter(
+    (s) => typeof s.why_it_matters === "string" && s.why_it_matters.trim().length > 0,
+  ).length;
+  const TAKE_PRESENT = typeof EDITION.take === "string" && EDITION.take.trim().length > 0;
+  const NOT_A_SOURCE = new Set(["clusters", "whos_hiring", "layoffs"]);
+  const POOL = Object.entries(EDITION.counts)
+    .filter(([k]) => !NOT_A_SOURCE.has(k))
+    .reduce((sum, [, v]) => sum + v, 0);
+
+  const identical = reassembled !== null && deepEqual(reassembled, EDITION);
+  const headlineOk =
+    headline !== null && headline === EDITION.headline && headlineDelta < DELTAS + 1;
+  const storiesOk = STORY_COUNT > 0 && WHY_COUNT === STORY_COUNT;
+  const poolOk = POOL > STORY_COUNT;
+  const eventsOk = replayed === EVENTS;
+  const pass = identical && headlineOk && storiesOk && TAKE_PRESENT && poolOk && eventsOk;
+
+  return {
+    pass,
+    mode: "recorded",
+    metrics: [
+      { label: "stories in the edition", value: String(STORY_COUNT) },
+      { label: "why-it-matters lines", value: `${WHY_COUNT}/${STORY_COUNT}` },
+      { label: "candidates pooled → chosen", value: `${POOL} → ${STORY_COUNT}` },
+      { label: "stream events replayed", value: `${replayed}/${EVENTS}` },
+      { label: "deep-equal replay", value: identical ? "✓" : "✗" },
+    ],
+    summary: pass
+      ? `Recorded edition replayed as ${EVENTS} SSE events and reassembled deep-equal to the fixture: ${STORY_COUNT} stories chosen from ${POOL} candidates, ${WHY_COUNT}/${STORY_COUNT} carrying a why-it-matters line, Editor's Take present.`
+      : "Replay of the recorded edition diverged from the fixture — see the report lines.",
+  };
+}
+
+// --- CHK-08 · rasoibot: the lookup looks things up ---------------------------
 // Same set-intersection scoring as the shipped app, over the curated index in
 // lib/checks/fixtures/rasoibot-index.json (12 recipes lifted from the app's
 // recipes.json). Ties keep the earlier entry — strict `>`, as in the browser.
@@ -325,8 +412,10 @@ const results = {
   bourse: bourse(),
   netpulse: netpulse(),
   costdna: costdna(),
+  dispatch: dispatch(),
   rasoibot: rasoibot(),
 };
+const EXPECTED_CHECKS = 8; // one per stop on the page (lib/claims.ts CHECK_SLUGS)
 
 const out = { builtAt: new Date().toISOString(), results };
 
@@ -341,8 +430,9 @@ if (failing.length > 0) {
   console.error(`\n${failing.length} check(s) failing — refusing to bake a red build.`);
   process.exit(1);
 }
-if (Object.keys(results).length !== 7) {
-  console.error(`\nexpected exactly 7 checks, found ${Object.keys(results).length}.`);
+const total = Object.keys(results).length;
+if (total !== EXPECTED_CHECKS) {
+  console.error(`\nexpected exactly ${EXPECTED_CHECKS} checks, found ${total}.`);
   process.exit(1);
 }
-console.log(`\n7/7 checks pass · lib/verification.json written · ${out.builtAt}`);
+console.log(`\n${total - failing.length}/${total} checks pass · lib/verification.json written · ${out.builtAt}`);
