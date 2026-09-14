@@ -75,7 +75,9 @@ export default function ProjectStop({
         ? "fail"
         : state.status === "pass"
           ? state.ranByVisitor
-            ? "pass, in your browser"
+            ? state.result?.mode === "recorded"
+              ? "pass, replayed in your browser"
+              : "pass, in your browser"
             : `pass, ${provenance.label}`
           : "not run yet";
 
