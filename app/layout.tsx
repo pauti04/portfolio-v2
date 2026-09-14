@@ -67,6 +67,7 @@ const DESCRIPTION =
   "Pune to Manipal to Charlotte: 9,083 miles, three cities, and eight systems that run — each one demonstrated live in this page. Parth Auti, B.S. Computer Science at UNC Charlotte, available December 2026.";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "./" },
   metadataBase: new URL(`${BASE}/`, SITE_ORIGIN),
   title: TITLE,
   description: DESCRIPTION,
@@ -74,6 +75,7 @@ export const metadata: Metadata = {
   // against metadataBase and attaches it to both og:image and twitter:image,
   // so neither block names it here.
   openGraph: {
+    url: "./",
     type: "website",
     locale: "en_US",
     siteName: CONTACT.name,

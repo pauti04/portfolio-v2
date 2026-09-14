@@ -16,6 +16,10 @@ import { join } from "node:path";
 
 const OUT = join(process.cwd(), "out");
 const NAME = "opengraph-image";
+// Same problem for the two next/metadata icons: emitted extensionless, served
+// as application/octet-stream by Pages. Browsers honour the <link type>, but
+// a .png copy + rewritten hrefs is the correct, boring fix.
+const ICONS = ["icon", "apple-icon"];
 const src = join(OUT, NAME);
 
 if (!existsSync(OUT) || !existsSync(src) || !statSync(src).isFile()) {
@@ -51,6 +55,19 @@ for (const file of htmlFiles(OUT)) {
     touched += 1;
     rewrites += n;
   }
+}
+
+for (const icon of ICONS) {
+  const isrc = join(OUT, icon);
+  if (!existsSync(isrc) || !statSync(isrc).isFile()) continue;
+  copyFileSync(isrc, `${isrc}.png`);
+  const iconRe = new RegExp(`/${icon}(?!\\.png)(\\?[^"'\\s<>]*)?(?=["'\\s<>])`, "g");
+  for (const file of htmlFiles(OUT)) {
+    const html = readFileSync(file, "utf8");
+    const next = html.replace(iconRe, (_m, q = "") => `/${icon}.png${q}`);
+    if (next !== html) writeFileSync(file, next);
+  }
+  console.log(`postbuild: ${icon} → ${icon}.png`);
 }
 
 console.log(`postbuild: ${NAME} → ${NAME}.png · ${rewrites} url(s) rewritten in ${touched} html file(s)`);

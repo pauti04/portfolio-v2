@@ -134,6 +134,14 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
         ...s,
         [slug]: { ...s[slug], status: "running", logs: [] },
       }));
+      // Mirror every status transition into the ref synchronously: the
+      // effect that syncs statesRef runs after commit, so a caller that
+      // reads the ref right after `await runCheck()` (Run all's tally,
+      // the copy-summary) would otherwise see the previous status.
+      statesRef.current = {
+        ...statesRef.current,
+        [slug]: { ...statesRef.current[slug], status: "running", logs: [] },
+      };
       announce(`${idOf(slug)} ${nameOf(slug)}: running`);
       try {
         const run = await loadRunner[slug]();
@@ -155,6 +163,15 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
             ranByVisitor: true,
           },
         }));
+        statesRef.current = {
+          ...statesRef.current,
+          [slug]: {
+            ...statesRef.current[slug],
+            status: result.pass ? "pass" : "fail",
+            result,
+            ranByVisitor: true,
+          },
+        };
         if (result.metrics.length > 0) {
           const m = result.metrics[0];
           const now = new Date();
@@ -179,6 +196,10 @@ export default function RunAllProvider({ children }: { children: ReactNode }) {
           ...s,
           [slug]: { ...s[slug], status: "fail" },
         }));
+        statesRef.current = {
+          ...statesRef.current,
+          [slug]: { ...statesRef.current[slug], status: "fail" },
+        };
         announce(`${idOf(slug)} ${nameOf(slug)}: fail — check did not complete`);
       }
     },

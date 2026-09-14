@@ -247,7 +247,14 @@ export default function Post() {
           </div>
           <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Measured results">
             <table className="mono w-full border-collapse text-left text-xs">
-              <tbody>
+                <thead>
+                  <tr className="text-muted">
+                    <th scope="col" className="py-1 pr-4 font-normal">approach</th>
+                    <th scope="col" className="py-1 pr-4 font-normal">per call</th>
+                    <th scope="col" className="py-1 font-normal">note</th>
+                  </tr>
+                </thead>
+                <tbody>
                 <tr className="border-t border-rule">
                   <td className="py-2 pr-4 align-top whitespace-nowrap text-ink">43.2 ms / call</td>
                   <td className="py-2 pr-4 align-top text-ink-soft">linear scan</td>
